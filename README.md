@@ -54,8 +54,8 @@ wrong*, until the goal is done.
    implementer while you stay the parent orchestrator and reviewer`.
 
 3. **The rest fires on its own.** The spec tells the loop when to call the
-   other skills — `/refactor-clean` and a review pass at the end of every
-   slice, `/screenshot-critique` and `/compare-screenshots` on anything
+   other skills — a `/review` pass at the end of every slice,
+   `/screenshot-critique` and `/compare-screenshots` on anything
    visual, `/close-spec` when the last slice lands — and to update and
    re-slice the plan whenever implementation proves it stale. Every skill is
    also independently useful: invoke any of them manually whenever you want.
@@ -74,6 +74,8 @@ wrong*, until the goal is done.
 | [refactor-clean](skills/engineering/refactor-clean/SKILL.md) | Refactor by moving ownership to one clean concept instead of layering compatibility sediment beside the problem. |
 | [write-tests](skills/engineering/write-tests/SKILL.md) | Write tests one tracer bullet at a time that pin real behavior — not implementation details, config values, or lucky samples. |
 | [write-docs](skills/engineering/write-docs/SKILL.md) | Write docs as a glossary of principles and pointers, never a mirror of the code that will rot. |
+| [code-review](skills/engineering/code-review/SKILL.md) | Audit a diff for stale names, dead references, needless complexity, and comments that narrate instead of explain — ending on a clean/not-clean verdict. |
+| [review](skills/engineering/review/SKILL.md) | Closeout a finished change as one pass — refactor-clean, then code-review, then write-docs — sequenced into a single verdict. |
 | [codex](skills/engineering/codex/SKILL.md) | Use the local Codex CLI as an independent second agent for review and (on explicit ask) delegated implementation. |
 | [claude](skills/engineering/claude/SKILL.md) | Use Claude Code (`claude -p`) as an independent second agent for consultation and (on explicit ask) delegated implementation. |
 
