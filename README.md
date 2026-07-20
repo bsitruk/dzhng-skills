@@ -75,6 +75,7 @@ wrong*, until the goal is done.
 | [write-tests](skills/engineering/write-tests/SKILL.md) | Write tests one tracer bullet at a time that pin real behavior — not implementation details, config values, or lucky samples. |
 | [write-docs](skills/engineering/write-docs/SKILL.md) | Write docs as a glossary of principles and pointers, never a mirror of the code that will rot. |
 | [code-review](skills/engineering/code-review/SKILL.md) | Audit a diff for stale names, dead references, needless complexity, and comments that narrate instead of explain — ending on a clean/not-clean verdict. |
+| [audit-choices](skills/engineering/audit-choices/SKILL.md) | Audit the choices an implementer made, not its diff — a pure, never-blocking audit whose ledger discloses the architecture and decisions made on the user's behalf, reviewed instead of the code. |
 | [review](skills/engineering/review/SKILL.md) | Closeout a finished change as one pass — refactor-clean, then code-review, then write-docs — sequenced into a single verdict. |
 | [codex](skills/engineering/codex/SKILL.md) | Use the local Codex CLI as an independent second agent for review and (on explicit ask) delegated implementation. |
 | [claude](skills/engineering/claude/SKILL.md) | Use Claude Code (`claude -p`) as an independent second agent for consultation and (on explicit ask) delegated implementation. |
