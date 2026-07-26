@@ -31,6 +31,23 @@ module into the several owners it was hiding.
 
 ## Rules
 
+- **Every line is debt — the best mechanism is the one you don't write.**
+  Before building any guard, validator, convergence protocol, or cleanup
+  path, two checks gate it:
+  1. **Does the platform already do this?** Read the component/framework you
+     are working around before coding around it — its crons, retries,
+     defaults, and lifecycles. A hand-built janitor beside a component that
+     already vacuums itself is pure debt, and it will be debugged by someone
+     who doesn't know the component made it unnecessary.
+  2. **Does the failure it guards change any real outcome?** Trace the
+     guarded condition to its consumer. If the consumer is indifferent — an
+     ordering check feeding a consumer that doesn't care about order, a
+     validation on data only our own code produces — the guard tests nothing
+     and must not be written. "It could be inconsistent" is not a reason;
+     "the consumer would then do the wrong thing" is.
+  The bar is not "is this correct?" — defensive code is usually correct.
+  The bar is "what breaks, for whom, if this line doesn't exist?" No
+  concrete answer → no line.
 - **Do not over-weigh the sunk cost of the existing architecture.** "It already
   exists and works" is not an argument for keeping a shape — coding agents make
   large architecture switches cheap, so size a refactor by the quality of the end
