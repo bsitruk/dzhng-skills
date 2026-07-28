@@ -43,7 +43,11 @@ module into the several owners it was hiding.
      guarded condition to its consumer. If the consumer is indifferent — an
      ordering check feeding a consumer that doesn't care about order, a
      validation on data only our own code produces — the guard tests nothing
-     and must not be written. "It could be inconsistent" is not a reason;
+     and must not be written. A common shape: an invariant re-checked at read
+     time that the single write path already establishes, so the branch can
+     only fire on hand-corrupted rows. Ask which caller could produce the bad
+     state; if the honest answer is "none, short of someone editing the
+     database", delete the branch. "It could be inconsistent" is not a reason;
      "the consumer would then do the wrong thing" is.
   The bar is not "is this correct?" — defensive code is usually correct.
   The bar is "what breaks, for whom, if this line doesn't exist?" No
@@ -82,6 +86,19 @@ module into the several owners it was hiding.
   the other already settled (orientation, units, edge cases, ordering).
 - Do not preserve dev-only compatibility by default. Unshipped scaffolding should
   move to the clean contract immediately.
+- **Prefer the idempotent contract over the refusal.** When an operation can be
+  asked for twice — a retry after a lost response, a user clicking the same
+  button again, a replayed webhook — reaching the requested end state should
+  succeed, not error. "Install X" where X is already installed at the place it
+  belongs is a success: return the thing. Refusal is correct only when the
+  second request means something genuinely different from the first — a
+  DIFFERENT thing already occupies the name, so honoring the request would
+  destroy or shadow it. The tell that you have it backwards: a caller has to
+  special-case your error code to recover normal behavior, or a retry path
+  needs a pre-flight "does it already exist?" read that races. Applies beyond
+  writes: deletes of absent things, unsubscribes, and "mark complete" toggles
+  are all idempotent by nature, and making them 404 or 409 pushes bookkeeping
+  onto every caller.
 - **Constrain the model to what production actually writes.** A schema that
   permits more than any writer produces — a list where every flow stores one
   element, a state nothing reaches — taxes every consumer with the general

@@ -82,6 +82,15 @@ Two ways in, same audit:
    skippable. Only trivial discretion (internal naming, cosmetic calls)
    compresses to a one-line count.
 
+   **Reach for pseudocode when the choice is about control flow, ordering, or
+   timing.** Prose describing when-something-fires reads as plausible and hides
+   the gap; five lines of pseudocode make the gate visible and let the reader
+   see the case you missed. Write it at the level of the decision, not the
+   implementation — the conditions and their order, not real function
+   signatures. The tell that you needed it: your prose contains "only when",
+   "before", "unless", or "as soon as" and the reader still cannot say what
+   happens on the second call.
+
    **Write every entry ELI5 — by default, not on request.** The reader
    didn't live the session: walk a concrete scenario end to end — the
    triggering event, what the work does today, what the unbuilt alternative
