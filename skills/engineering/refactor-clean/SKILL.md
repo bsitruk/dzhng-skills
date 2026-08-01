@@ -52,6 +52,29 @@ module into the several owners it was hiding.
   The bar is not "is this correct?" — defensive code is usually correct.
   The bar is "what breaks, for whom, if this line doesn't exist?" No
   concrete answer → no line.
+- **Measure the change, and treat a bad size-to-behaviour ratio as a shape
+  defect.** Before accepting a change, count what it actually cost — production
+  code apart from tests and docs, and comments apart from logic, because a
+  diff dominated by explanation is not the same as one dominated by machinery:
+
+  ```
+  git diff --numstat <base> -- ':!specs' ':!*.test.*' ':!**/test-harness'
+  ```
+
+  Then read the added lines, not just the total. **A small behavioural change
+  that costs a large number of lines is a red flag** — it is the most reliable
+  signal that the fix is fighting the existing shape rather than fitting it:
+  a special case layered where the general case belongs, a second owner
+  introduced beside the real one, or a wrapper bridging two things that should
+  have been merged. The correct response is to rework it from the shape the
+  code would want, **not** to commit it with a paragraph explaining why it had
+  to be big; that explanation is the smell, not the mitigation.
+
+  Two honesty rules, or the number means nothing: formatter churn in files the
+  change did not otherwise touch is not part of the change and must stay out of
+  the commit; and a net count near zero can still hide real weight — a new
+  cron, table column, index, endpoint, dependency, or config flag is a surface
+  someone now owns and maintains, so name those separately from the count.
 - **Do not over-weigh the sunk cost of the existing architecture.** "It already
   exists and works" is not an argument for keeping a shape — coding agents make
   large architecture switches cheap, so size a refactor by the quality of the end
