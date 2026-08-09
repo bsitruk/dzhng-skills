@@ -109,6 +109,17 @@ module into the several owners it was hiding.
   the other already settled (orientation, units, edge cases, ordering).
 - Do not preserve dev-only compatibility by default. Unshipped scaffolding should
   move to the clean contract immediately.
+- **Zero lineage signaling: name things for what they are, never for where they
+  came from.** A name that encodes history — a slice file prefixed with the
+  mega-file it was split from, `foo-v2`/`foo-new`/`foo-legacy`, a module named
+  after the experiment that produced it, a wrapper named after the API it
+  replaced — carries no information to a reader who wasn't there, and actively
+  misleads the one who was once the old thing is gone. The test: would someone
+  who joined today, knowing nothing of the history, choose this name? If the
+  name only makes sense with the backstory, rename it; history lives in git,
+  not in identifiers. The same rule kills lineage comments ("previously this
+  was...", "moved from X") — they describe the diff, not the code, and rot the
+  moment the referent disappears.
 - **Prefer the idempotent contract over the refusal.** When an operation can be
   asked for twice — a retry after a lost response, a user clicking the same
   button again, a replayed webhook — reaching the requested end state should
