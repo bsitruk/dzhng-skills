@@ -1,13 +1,14 @@
 ---
 name: marketing-pages
-description: Build, update, or audit a marketing site's pages by page class — campaign landers, product pages, programmatic SEO trees, editorial. Use when adding or changing a landing/marketing page, wiring a campaign lander to an attribution identifier, changing site-wide nav/footer links, touching sitemap/robots/agent-readable surfaces, or auditing a public site's indexing and reachability.
+description: Best-practice rulebook for a marketing site's pages, organized by page class — campaign landers, product pages, programmatic SEO trees, editorial. Use when writing or updating a landing/marketing page, wiring a campaign lander to an attribution identifier, changing site-wide nav/footer links, touching sitemap/robots/agent-readable surfaces, or auditing a public site's indexing, reachability, and conversion setup.
 ---
 
 # Marketing Pages
 
-Every public page belongs to exactly one **page class**, and the class decides
-everything else — indexing, linking, chrome, and wiring. Classify first; the
-rest of this skill is what each class demands.
+A rulebook, not a workflow: every rule below is simultaneously a constraint to
+build against and a check to audit against. Classify the page first — every
+public page belongs to exactly one **page class**, and the class decides its
+indexing, linking, chrome, and wiring.
 
 ## Page classes
 
@@ -19,94 +20,97 @@ rest of this skill is what each class demands.
 | **Editorial** (blog/guides) | indexed | header + footer | full chrome |
 | Legal/utility | indexed | footer | full chrome |
 
-A page that is noindexed AND unlinked is a **zombie** — either promote it to a
-linked, indexed class or make it a campaign lander. Never leave the halfway
-state. Keep campaign landers in a dedicated URL prefix (e.g. `/l/<slug>`): one
-`startsWith` then covers blanket noindex, "never nav-linked" lint, and slug
-collisions with real pages become impossible.
+- A page that is noindexed AND unlinked is a **zombie** — promote it to a
+  linked, indexed class or make it a campaign lander. Never leave the halfway
+  state.
+- Campaign landers live in a dedicated URL prefix (e.g. `/l/<slug>`): one
+  `startsWith` covers blanket noindex and "never nav-linked" checks, and slug
+  collisions with real pages become impossible.
 
-## Building a campaign lander
+## Campaign lander rules
 
 Campaign landers are alternate main landers — one audience, one promise, paid
-traffic. They trade SEO for message-match freedom, which is why they must stay
-out of the index: indexed near-duplicates split authority and freeze copy you
-want to A/B daily.
+traffic. They trade SEO for message-match freedom; indexed near-duplicates
+split authority and freeze copy that should be A/B-able daily.
 
-1. **Message match end-to-end**: ad copy → H1 → post-signup first screen, one
-   unbroken promise. If the product supports it, carry the campaign
-   identifier through signup into onboarding and analytics so the first-run
-   experience continues the promise and conversions are attributable per
-   lander.
-2. One CTA, repeated; social proof beside it; friction-reducing microcopy
-   ("no credit card"); capture only what qualifies later (usually email).
-3. Static text/image hero — no full-viewport video or heavy JS above the
-   fold; LCP is a conversion input on paid traffic.
-4. Before the first ad spends, know where conversion-per-lander will be read.
-   A lander you cannot measure cannot be iterated.
+- **Message match end-to-end**: ad copy → H1 → post-signup first screen, one
+  unbroken promise. Where the product supports it, the campaign identifier
+  flows through signup into onboarding and analytics, so the first-run
+  experience continues the promise and conversions attribute per lander.
+- One CTA, repeated down the page; social proof beside it; friction-reducing
+  microcopy ("no credit card"); capture only what qualifies later (usually
+  just email).
+- Static text/image hero — no full-viewport video or heavy JS above the fold.
+  LCP is a conversion input on paid traffic.
+- A lander you cannot measure cannot be iterated: conversion-per-lander
+  (lead → signup → purchase) must be readable somewhere before ads spend.
+- Killed campaign pages get no redirects: deleted routes 404, and the 404s in
+  Search Console afterward are the intended signal, not a defect.
 
-## Building or updating an indexed page
+## Indexed page rules
 
-Walk the wiring contract — each item has one owner in the codebase; find the
-current owner rather than trusting remembered paths:
+Each of these has one owner in the codebase — find the current owner rather
+than trusting remembered paths:
 
-1. The route, plus whatever closed-world route registry the site's gates
-   check against.
-2. A sitemap entry (indexed pages only — a noindexed URL in the sitemap is a
-   contradictory signal, and vice versa). Honest `lastmod`, not build time.
-3. Agent-readable surfaces if the site ships them (llms.txt, markdown
-   twins): render them from the same copy source the page renders from —
-   never from built HTML, never hand-drifted duplicates.
-4. Robots: allow reviewed indexed trees for AI crawlers; disallow only
-   campaign landers and internal surfaces.
-5. A footer (or header) link — the footer link grid is the crawl rail; pages
-   discoverable only via the sitemap sit in "Discovered — not indexed" for
-   weeks and receive no internal authority.
-6. Product facts (pricing, limits, tier names) derive from the single source
-   the product code owns — restated numbers drift silently and nothing turns
-   red.
-7. Internal links name paths, never origins, so a closed-world check can
-   verify every authored target actually resolves.
+- The route appears in whatever closed-world route registry the site's gates
+  check against.
+- Indexed ⇔ sitemapped, always both or neither: a noindexed URL in the
+  sitemap is a contradictory signal, as is an indexed page missing from it.
+  `lastmod` is honest (content date, not build time).
+- Agent-readable surfaces, if the site ships them (llms.txt, markdown twins),
+  render from the same copy source the page renders from — never from built
+  HTML, never hand-drifted duplicates.
+- Robots allows reviewed indexed trees for AI crawlers; disallows only
+  campaign landers and internal surfaces. robots, meta robots, and the
+  sitemap must agree on every URL.
+- Every indexed page is reachable from header or footer — the footer link
+  grid is the crawl rail. Pages discoverable only via the sitemap sit in
+  "Discovered — not indexed" for weeks and receive no internal authority.
+- Product facts (pricing, limits, tier names) derive from the single source
+  the product code owns — restated numbers drift silently and nothing turns
+  red.
+- Internal links name paths, never origins, so a closed-world check can
+  verify every authored target resolves.
+- Locale-prefixed links to pages that exist in only one locale must resolve
+  (redirect to the canonical locale, not 404) — sitewide chrome prefetches
+  every link from every page.
+- Deleting or renaming a page deletes every reference in the same pass: route
+  registry, sitemap, agent-readable twin, links from kept pages, visual
+  baselines, and e2e/journey anchors (grep the test suites — a rename that
+  keeps local gates green can break a live journey hours later).
 
-## Visual coverage
-
-- Reusable sections and components get an isolated, deterministic **fixture**
-  (a playground/storybook entry) that owns their visual coverage; the fixture
-  menu doubles as the component catalog new pages are composed from.
-- Representative full-page screenshots stay at ONE key route per template.
-  Routes churn; fixtures are the stable oracle. New template → one new
-  representative route; new section → a fixture, not more route shots.
-- Accept visual baselines only after an unprimed second opinion — eyes primed
-  by the change pass defects fresh eyes catch.
-
-## SEO rules that pay rent
+## SEO rules
 
 - Contextual in-body links from editorial to money pages move more authority
   than footer anchors — add them where content genuinely relates.
 - Comparison/competitor pages carry an honest visible updated-date and get
   refreshed on a real cadence — a stale dated page is worse than an undated
   one.
-- Programmatic tree pages must stay substantive (concrete jobs, specific
-  copy) — thin templated pages are doorway-page bait.
-- Deleting a page means deleting every reference in the same pass: route
-  registry, sitemap, agent-readable twin, links from kept pages, visual
-  baselines, and e2e/journey anchors (grep the test suites — a rename that
-  keeps local gates green can break a live journey hours later). No
-  redirects for killed campaign pages: deleted routes 404, and the 404s in
-  Search Console are the intended signal, not a defect.
+- Programmatic tree pages stay substantive (concrete jobs, specific copy) —
+  thin templated pages are doorway-page bait.
+- Hub pages exist so leaves inherit authority: every tree leaf is linked from
+  its hub, and the hub from the site chrome.
 
-## Audit
+## Visual coverage rules
 
-Run these sweeps; each must come back empty or explained:
+- Reusable sections and components have an isolated, deterministic **fixture**
+  (playground/storybook entry) that owns their visual coverage; the fixture
+  menu doubles as the component catalog new pages are composed from.
+- Representative full-page screenshots stay at ONE key route per template.
+  Routes churn; fixtures are the stable oracle. New template → one new
+  representative route; new section → a fixture, not more route shots.
+- Visual baselines are accepted only after an unprimed second opinion — eyes
+  primed by the change pass defects fresh eyes catch.
 
-1. Indexed page unreachable from header/footer (zombie check).
-2. Sitemap URL that is noindexed, or indexed page missing from the sitemap.
-3. robots/meta/sitemap disagreement on any URL.
-4. Campaign lander linked from any indexed page.
+## Audit sweeps
+
+Auditing a site = evaluating every rule above, plus these cross-cutting
+sweeps; each must come back empty or explained:
+
+1. Zombie pages (noindexed AND unlinked).
+2. Sitemap/robots/meta disagreements.
+3. Campaign lander linked from any indexed page, or present in a sitemap.
+4. Indexed page unreachable from header/footer.
 5. Component with no owner in the visual coverage system.
 6. Marketing copy restating a product fact that has a canonical owner.
-
-## Gates
-
-Close out with the site's content/route verification suite, a production
-build plus its build-output checks, and the visual regression gate for
-anything visual.
+7. Broken locale-crossed links from sitewide chrome.

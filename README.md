@@ -80,7 +80,7 @@ wrong*, until the goal is done.
 | [review](skills/engineering/review/SKILL.md) | Closeout a finished change as one pass — refactor-clean, then code-review, then write-docs — sequenced into a single verdict. |
 | [codex](skills/engineering/codex/SKILL.md) | Use the local Codex CLI as an independent second agent for review and (on explicit ask) delegated implementation. |
 | [claude](skills/engineering/claude/SKILL.md) | Use Claude Code (`claude -p`) as an independent second agent for consultation and (on explicit ask) delegated implementation. |
-| [marketing-pages](skills/engineering/marketing-pages/SKILL.md) | Build, update, or audit a marketing site by page class — campaign landers stay noindexed and unlinked with one CTA, everything else earns its sitemap entry, crawl-rail link, and canonical copy source. |
+| [marketing-pages](skills/engineering/marketing-pages/SKILL.md) | Rulebook for writing, updating, and auditing marketing pages by page class — campaign landers stay noindexed and unlinked with one CTA; everything else earns its sitemap entry, crawl-rail link, and canonical copy source. |
 
 ### Visual review — never accept visuals on vibes
 
