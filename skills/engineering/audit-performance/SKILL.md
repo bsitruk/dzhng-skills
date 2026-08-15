@@ -30,13 +30,13 @@ ledger or report, then prefer the smallest fix that preserves recovery.
 
 ## Priority Policy
 
-Rank highest when the issue can cause a user-visible freeze or error, memory/disk growth, event-loop
-blocking, data loss, fleet-wide amplification, or a poison item that prevents later work.
+Rank highest when the issue can cause a user-visible freeze or error, memory/disk growth, blocked
+request processing, data loss, fleet-wide amplification, or a poison item that prevents later work.
 
 Prefer low-risk fixes that bound existing work: stream pagewise, honor backpressure, coalesce
 schedules, move poison rows aside, skip proven no-ops, or make one exhaustive search end in a
-terminal verdict. A cap is a pathology guard, not a normal product limit: set it above legitimate
-large workloads, emit actionable telemetry when reached, and define what happens next.
+terminal verdict. A safety cap is a pathology guard, not a normal product limit: set it above
+legitimate large workloads, emit actionable telemetry when reached, and define what happens next.
 
 Do not prioritize by scary-looking counts alone:
 
@@ -50,14 +50,15 @@ Do not prioritize by scary-looking counts alone:
 
 - Preserve healing. A cache or no-op shortcut must retain cheap recovery signals and fall back to
   ordinary reconciliation on drift, uncertainty, restart, or prior failure.
-- A recovery walk should prune known-noisy trees, search the whole useful namespace once, and use a
-  high ceiling that indicates pathology rather than an ordinary large project. Finding the target
-  updates identity; an exhaustive miss or abnormal ceiling produces the domain's terminal verdict.
-  Never restart the same partial prefix forever.
+- A recovery scan must either finish or persist forward progress. For a local, prunable namespace,
+  prefer one complete pass with a ceiling high enough to indicate pathology rather than an ordinary
+  large project. For a legitimately huge namespace, persist a cursor and resume after it. Finding the
+  target updates identity; an exhaustive miss or abnormal ceiling produces the domain's terminal
+  verdict. Never restart the same partial prefix forever.
 - Separate retryable failures from terminal ones. A permanent rejection must not sit at a queue head
   or fixed prefix forever.
 - Bound both sides of a transport and every durable/in-memory queue. State the overflow behavior;
-  never silently drop canonical data.
+  never silently drop accepted durable data.
 - Match compatibility work to the product lifecycle. In prelaunch code, prefer direct changes and
   add no legacy branches or migrations unless real persisted data requires them.
 - Every limit introduced or changed must have an observable log or metric with the limit kind,
