@@ -46,6 +46,8 @@ call one when it isn't.
 
 ### The full loop — a big feature, start to finish
 
+![The full loop — explore, spec, build unattended, review the choices](assets/full-loop.png)
+
 1. **Map the fog.** `/explore-unknowns` on the idea. It interviews you quadrant
    by quadrant and hands you rendered options, mocks, and decision tables to
    react to instead of asking you to imagine. By the end you know what the
