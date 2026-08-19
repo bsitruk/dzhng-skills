@@ -40,25 +40,60 @@ wrong*, until the goal is done.
 
 ## How to use
 
-1. **Plan.** Ask your agent to `/write-spec` the goal. It interviews you,
-   researches the unknowns, and materializes a spec under `specs/<feature>/` —
-   a slice graph where every slice is independently verifiable.
+Two shapes: one chained pipeline for a big feature, or à la carte whenever the
+AI touches code. Every skill stands alone — chain them when the work is big,
+call one when it isn't.
 
-2. **Build.** Kick off the loop:
+### The full loop — a big feature, start to finish
+
+![The full loop — explore, spec, build unattended, review the choices](assets/full-loop.png)
+
+1. **Map the fog.** `/explore-unknowns` on the idea. It interviews you quadrant
+   by quadrant and hands you rendered options, mocks, and decision tables to
+   react to instead of asking you to imagine. By the end you know what the
+   feature does.
+
+2. **Codify.** `/write-spec` on that map. Most decisions were already made
+   upstream, so this pass is transcription — I don't read the spec. Anything
+   genuinely new it hits, it asks about instead of deciding.
+
+3. **Build.** Kick off the loop:
 
    ```
    /goal /implement-spec specs/<feature>
    ```
 
-   Add whatever framing fits: `on the xyz branch`, or `using /codex as the
-   implementer while you stay the parent orchestrator and reviewer`.
+   `/goal` is what puts the harness in loop mode — same move in Claude Code or
+   Codex — and the spec drives it from there. A couple of hours for a small
+   feature, two or three days for a large one. Add whatever framing fits: `on
+   the xyz branch`, or `using /codex as the implementer while you stay the
+   parent orchestrator and reviewer`.
 
-3. **The rest fires on its own.** The spec tells the loop when to call the
-   other skills — a `/review` pass at the end of every slice,
-   `/screenshot-critique` and `/compare-screenshots` on anything
-   visual, `/close-spec` when the last slice lands — and to update and
-   re-slice the plan whenever implementation proves it stale. Every skill is
-   also independently useful: invoke any of them manually whenever you want.
+4. **Review the choices, not the diff.** The run ends by consolidating
+   `specs/<feature>/choices.md` — every decision the agent made where the spec
+   was silent, ranked least-confident first. That's the review surface. Send
+   changes back and the next pass re-audits: every time the AI writes code, you
+   audit what it chose.
+
+   The rest fires on its own: a `/review` pass at the end of every slice,
+   `/screenshot-critique` and `/compare-screenshots` on anything visual,
+   `/close-spec` when the last slice lands, and a re-slice of the plan whenever
+   implementation proves it stale.
+
+Budget: 30 minutes to a few hours on steps 1–2, 30 minutes to a few hours on
+step 4. A run that goes two days is more like 2–3 hours on each end. Your time
+is in the bookends; the middle is unattended.
+
+### À la carte — the spontaneous path
+
+- **A brainstorm turns out to be a feature.** `/explore-unknowns` works at the
+  end of a discussion as well as at the start — run it to sweep for the angles
+  neither of you thought of, then pick the loop up at step 2.
+
+- **Any code change that didn't come from a spec.** An ad hoc fix that touched
+  more than expected: `/review` first (refactor-clean → code-review →
+  write-docs), then `/audit-choices`. When the diff is too big to read, the
+  choices ledger is how you still understand what is now in your codebase.
 
 ## Skills
 
