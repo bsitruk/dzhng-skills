@@ -1,6 +1,6 @@
 ---
 name: compare-screenshots
-description: Compare screenshots to judge which image is less wrong, not to match a baseline. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting a visual change.
+description: Compare screenshots to judge which image is less wrong, not to match a baseline. Use when a UI, game, document, render, chart, or generated asset needs objective visual telemetry, side-by-side inspection, crop/zoom review, or a fresh second opinion before accepting or rejecting a visual change. Also use on a single capture with no counterpart, to measure whether the frame is flat, empty, or badly framed before anyone reviews it.
 ---
 
 # Compare Screenshots
@@ -72,6 +72,33 @@ For UI/document/layout reviews, also use crop bounds, text/foreground mask
 coverage, contrast checks, edge clipping, element positions, and before/after
 dimensions when those beat global pixel distance.
 
+## Single-Image Metrics
+
+Every metric above measures one image against another, so none of them can
+answer "is this capture worth anything" when there is nothing to compare it to
+— and the pair score is symmetric, so an enormous distance never says *which*
+side is the empty frame. A few absolute numbers do, computed on a coarse grid
+from a single PNG:
+
+- `colorEntropyBits` under ~3.0, or `dominantColorShare` over ~0.6: one colour
+  owns the frame. A sparse scene, an unlit one, or a subject that never drew.
+- `edgeDensity` under ~0.04: almost no form anywhere. Empty framing, a
+  primitive-dominant scene, or the subject sitting outside the crop.
+- `luminanceContrast` under ~60: fog, darkness, or haze compressing the whole
+  frame into one band.
+- `transparentShare` above 0 on a capture that should be opaque: the capture
+  itself is wrong. A transparent pixel keeps whatever RGB it was left with, so
+  an invisible frame can look rich until it is composited — the scene metrics
+  composite before measuring, and name the invisible share rather than letting
+  you infer it. The pair metrics above still read stored RGB, so this field is
+  where transparency gets told either way.
+
+These are thresholds for *suspicion*, not gates. A deliberately minimal design,
+a night scene, an empty-state screen, and a whiteboard all trip them honestly.
+Use them to decide where to look, then say what the frame is actually doing —
+never adjust a capture to raise a number, which is the same failure as cropping
+away a difference.
+
 ## Distance Score
 
 When a single fixed-pair number is useful, this default works for structural
@@ -112,7 +139,19 @@ runtime.
   `REFERENCE_DIR=<png-folder>`, `CANDIDATE_DIR=<png-folder>`, and optional
   `OUT_DIR=<artifact-folder>`. `REPORT_ORDER=a,b,c` pins ordering;
   `CROPS_JSON=<file>` adds labeled crops (keyed by image id, each crop in pixels
-  or `{ "unit": "ratio" }` normalized bounds).
+  or `{ "unit": "ratio" }` normalized bounds). Pair reports carry a
+  `sceneMetrics` block per side.
+- Drop `REFERENCE_DIR` to run the same helper on a folder with no counterpart:
+  it writes `scene-metrics.json` with the single-image numbers above and no
+  diff artifacts. Use it on a lone screenshot, on a full capture set before
+  anyone reviews it, or to find which side of a large distance is the empty
+  one.
+- `scripts/visual-parity-diff.eval.mjs` is the helper's own eval: it generates
+  fixtures whose correct answer is known by construction — empty, transparent,
+  primitive-dominant, authored, degenerate — and asserts the classification,
+  the invariances, and the CLI contract. Run it with the same `REPO_ROOT` after
+  changing the script. Never satisfy a failing check by loosening a threshold
+  until you have shown the fixture, not the code, is what's wrong.
 - For other tasks, adapt the same artifact set rather than adding one-off
   scripts to the application. Extend the helper if a needed pair is uncovered.
 
