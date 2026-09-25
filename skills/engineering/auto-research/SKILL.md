@@ -18,10 +18,28 @@ verified artifact. An experiment is a checkpoint, not a stopping point.
    Identify the best verified artifact (the incumbent), active task, regression
    set, hypothesis queue, and remaining budget. Reuse existing record locations.
 
-2. **Define success and the smallest useful loop.** Record the objective metric,
-   direction, target, correctness gates, mutable parameters, fixed evaluator,
-   comparison baseline, and eventual validation scope. Select **one cheap task
-   that exposes the behavior being improved**. Measure its turnaround and remove
+2. **Clarify success before experimenting.** Recover any already agreed criteria;
+   do not ask the user to repeat them. If the evaluator, metric, comparison
+   baseline, or required improvement is unclear, ask focused questions and wait
+   for answers before editing candidates or launching evaluations. Inspect
+   existing artifacts and propose concrete options to make answering easier;
+   do not silently choose what success means. Continue clarification until the
+   answers define a checkable criterion, including evaluation scope, aggregation,
+   and non-regression gates. Restate that criterion in the research contract.
+
+   Distinguish passing correctness gates from achieving the optimization target.
+   Specify whether the target is an absolute score, an absolute change, or a
+   relative improvement against a named baseline. “Improve accuracy by 5%” is
+   ambiguous: from 60%, five percentage points means 65%, while 5% relative means
+   63%. Clarify the units and direction; record the formula when needed. A
+   baseline's value may be measured next, but its identity and the comparison rule
+   must be settled first. Accept open-ended optimization only when that is the
+   user's intent; do not invent a threshold or substitute any improvement for
+   the requested improvement.
+
+   **Then define the smallest useful loop.** Record mutable parameters and the
+   fixed evaluator and select **one cheap task that exposes the behavior being
+   improved**. Measure its turnaround and remove
    unnecessary setup, models, cases, and implementation work from the inner loop.
    Prefer an architectural spike when the uncertainty is architectural.
    Available benchmark tasks are a pool, not a requirement to run them all;
@@ -29,10 +47,9 @@ verified artifact. An experiment is a checkpoint, not a stopping point.
 
    Record the evaluation command, timeout, repair allowance, resource limits,
    promotion rule, and confirmation plan. Separate research spend from the cost
-   or runtime being optimized. Infer choices from the request; ask only for
-   missing decisions that materially change success. Done means the next trial
-   is cheap to run and has an unambiguous decision rule; do not build a large
-   benchmark matrix before testing the first hypothesis.
+   or runtime being optimized. Done means the success criterion is resolved and
+   the next trial is cheap to run with an unambiguous decision rule; do not build
+   a large benchmark matrix before testing the first hypothesis.
 
 3. **Establish the active task's baseline.** Run the unchanged artifact once, or
    reuse its compatible recorded result and traces. Verify the evaluator measures
