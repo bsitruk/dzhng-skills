@@ -56,9 +56,8 @@ wrong*, until the goal is done.
 
 ## How to use
 
-Two shapes: one chained pipeline for a big feature, or à la carte whenever the
-AI touches code. Every skill stands alone — chain them when the work is big,
-call one when it isn't.
+Use a chained pipeline to build a feature, a research loop to discover what
+works, or individual skills as needed. Every skill stands alone.
 
 ### The full loop — a big feature, start to finish
 
@@ -100,6 +99,26 @@ Budget: 30 minutes to a few hours on steps 1–2, 30 minutes to a few hours on
 step 4. A run that goes two days is more like 2–3 hours on each end. Your time
 is in the bookends; the middle is unattended.
 
+### Research — learn through fast experiments
+
+Use [Auto Research](skills/engineering/auto-research/SKILL.md) when the next
+decision needs experimental evidence. It starts with one fast, revealing task,
+tests a short batch of hypotheses, checks combinations, and expands coverage as
+the approach improves. New failures become the focus; earlier tasks become
+regression checks.
+
+```
+/auto-research Reduce cost per task by at least 15% relative to the saved
+baseline, without reducing task success. Start with one fast development task.
+```
+
+If the evaluator, metric, baseline, or required improvement is unclear, the
+skill asks before experimenting. Passing an evaluation and meeting an
+improvement target are separate requirements. The output includes the best
+verified artifact and a **parameter-effect map**: what was tested, where it
+helps or hurts, and how changes interact. Use that evidence to inform a spec
+when the research is ready for implementation.
+
 ### À la carte — the spontaneous path
 
 - **A brainstorm turns out to be a feature.** `/explore-unknowns` works at the
@@ -118,6 +137,7 @@ is in the bookends; the middle is unattended.
 | Skill | What it does |
 |---|---|
 | [explore-unknowns](skills/engineering/explore-unknowns/SKILL.md) | Walk the user through mapping a task's unknowns quadrant by quadrant — known knowns first, then interviews, reactable artifacts, and blindspot passes — ending with a complete four-quadrant map. |
+| [auto-research](skills/engineering/auto-research/SKILL.md) | Optimize through fast, progressive experiments, producing a verified candidate and a map of parameter effects and tradeoffs. |
 | [write-spec](skills/engineering/write-spec/SKILL.md) | Break a large feature into independently verifiable, human-reviewable slices with API seams and playable checkpoints. |
 | [implement-spec](skills/engineering/implement-spec/SKILL.md) | Build an existing spec to completion, one reviewable pass at a time, delegating independent slices in parallel. |
 | [implement-spec-with-codex](skills/engineering/implement-spec-with-codex/SKILL.md) | Run implement-spec with Codex writing the code — you orchestrate, integrate, and review every pass. |
