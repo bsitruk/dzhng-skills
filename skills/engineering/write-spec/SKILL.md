@@ -1,6 +1,6 @@
 ---
 name: write-spec
-description: Break large features into independently verifiable, human-reviewable slices under specs/<feature>/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, recursive fog-of-war reslicing, or proactive research into reference implementations/best practices before slicing. Pairs with your project's verification harness and screenshot gates (the browser checkpoints), [refactor-clean](../refactor-clean/SKILL.md) (review the materialized spec so the plan describes one-owner architecture, not the feature bolted on), [screenshot-critique](../../visual/screenshot-critique/SKILL.md) and [compare-screenshots](../../visual/compare-screenshots/SKILL.md) (the visual gates), and a code-review pass (audit each slice before it lands).
+description: Break large features into independently verifiable, human-reviewable slices under a feature directory in specs/. Use for risky or multi-step feature work that needs upfront questioning, API seams, browser-playable checkpoints, HTML visualizations, screenshot gates, staged implementation plans, recursive fog-of-war reslicing, or proactive research into reference implementations/best practices before slicing. Pairs with your project's verification harness and screenshot gates (the browser checkpoints), [refactor-clean](../refactor-clean/SKILL.md) (review the materialized spec so the plan describes one-owner architecture, not the feature bolted on), [screenshot-critique](../../visual/screenshot-critique/SKILL.md) and [compare-screenshots](../../visual/compare-screenshots/SKILL.md) (the visual gates), and a code-review pass (audit each slice before it lands).
 ---
 
 # Write Spec
@@ -89,6 +89,8 @@ whole feature is done.
    standard, visual target, or performance pattern. Capture the discovered
    source/repo/article/paper links in the spec and turn any exemplar into a
    reproduction spike before a porting slice.
+   If prior experiments already established an accepted approach, apply
+   **From research to implementation** below before drafting alternatives.
 3. **Draft in parallel:** for a multi-slice feature, spawn **at least three
    independent subagents** to draft the whole plan — fresh context each, a git
    worktree apiece if they must run or build to validate, otherwise have them
@@ -181,6 +183,34 @@ whole feature is done.
    extra visual variables to later slices, and rewrite the Next Agent Prompt to
    resume from the first new slice. Then continue. Reslicing is progress, not
    failure.
+
+## From research to implementation
+
+A validated spike is settled evidence, not raw material for an untested redesign.
+Read the accepted candidate itself, its prompts/skills and configuration, measured
+results, and experiment lessons. Freeze the runnable source/dependency closure and
+evaluation inputs by immutable identity in a durable reference location. Preserve
+the winning variant, not the latest file, and state the evidence's scope and limits.
+
+Carry a compact preservation contract into the spec: proven behavior → reference
+evidence → owning slice → parity gate. Include computed inputs, selection and
+expansion policy, ordering, output presentation, and agent instructions wherever
+they participate in the measured result. Inspect actual execution: a configured
+option may never have been enforced. Preserve measured mechanisms even when their
+individual contribution has not been isolated.
+
+Separate production integration from changes to experimental behavior. Identify
+user-required differences and proposals still needing experiments; neither may
+be silently folded into cleanup. Give every parallel drafter this same contract.
+Architectural simplicity does not justify dropping a proven stage, and agreement
+among drafts does not supersede measurements.
+
+Plan an early differential gate through the production entry point, using matched
+fixtures and controlled external responses to compare actual computed requests,
+decisions, and complete outputs against the frozen reference. Name allowable
+differences explicitly. Put this gate before expensive benchmark confirmation;
+retain the original outcome/quality gates for final acceptance. Every preservation
+row must have an owner and a check before the plan is ready to implement.
 
 ## Plan Folder
 
