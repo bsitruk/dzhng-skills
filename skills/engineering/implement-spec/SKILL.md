@@ -6,9 +6,8 @@ description: Implement an existing spec through committed passes. Use for long o
 # Implement Spec
 
 Build the active spec to completion, one reviewable pass at a time. The spec is
-the implementation plan, but it cannot silently override user constraints or
-accepted experimental evidence. Improve the architecture when evidence supports
-the change; a cleaner design alone does not establish equivalent behavior.
+the implementation plan; user constraints and accepted experimental evidence
+remain binding when the architecture changes.
 
 A pass (usually one slice) is a **commit checkpoint, not a stopping point.** The
 job is the whole spec — every slice, every global TODO — not the first green
@@ -28,8 +27,7 @@ depends on prior work.
    Load any skills named by the spec. Identify the current pickup point, global
    TODOs, required gates, and what must stay green. If a multi-slice spec lacks
    a live handoff prompt, add one before the first pass ends.
-   When the spec follows a validated spike, first apply **Evidence-preserving
-   ports** below; spec omissions are not permission to discard proven behavior.
+   For a validated spike, apply **Preserve the winner** below before editing.
 2. Reconcile the plan with the current code. If the slice would preserve a
    development-only shim, duplicated type, weak wrapper, or obsolete path,
    replace it with the simpler architecture and update the spec handoff.
@@ -53,10 +51,9 @@ depends on prior work.
    Read `git status`/`git diff --stat` line by line and account for every path:
    one-off probes, shot scripts, scratch files, `nohup.out`, ad-hoc screenshot
    dirs, and disposable SPIKE/debug notes never enter a commit — scratch stays
-   out of the tree. Frozen reference code, experiment lessons, fixtures, and
-   acceptance evidence have a durable purpose: preserve them in the project's
-   test/reference or spec assets area before removing scratch. A file you can't
-   name the durable purpose of does not ship.
+   out of the tree. Preserve frozen references, fixtures, and research evidence
+   in the project's reference or spec assets area. A file without a durable
+   purpose does not ship.
    Delegated agents leak these; the integrating reviewer re-checks the merged
    tree with the same eye.
 
@@ -134,37 +131,21 @@ depends on prior work.
    by verdict, ranked least-confident-first, every entry ELI5 and standalone.
    *Then* close the spec with [close-spec](../close-spec/SKILL.md).
 
-## Evidence-preserving ports
+## Preserve the winner
 
-Treat an accepted spike as an executable behavioral contract, including the
-code, configuration, prompts/skills, input construction, and output consumed by
-the user or downstream agent. Read the frozen winning artifact and its evidence,
-not just a summary, current working copy, or flag names. Record its identity and
-the limits of what the experiment actually established.
-
-Before changing the proven path, map its behavior to the production owner and
-parity gate. Resolve contradictions in the spec in favor of the accepted evidence
-unless the user explicitly changed the requirement. A plan rewritten to approve
-a deviation does not validate that deviation. Give delegated implementers the
-same reference and preservation constraints.
-
-Separate the faithful port from new experiments. Packaging, runtime, parser,
-cache, and ownership changes must preserve the measured behavior. Do not remove
-an odd-looking stage, shorten a prompt, enforce a previously unused budget, or
-change ordering as cleanup. Name intentional differences; test behavioral changes
-as separate hypotheses against the frozen winner before adopting them.
-
-Prove parity through the real production entry point with matched inputs and
-controlled external responses. Compare computed requests, stage decisions and
-complete observable outputs, including relevant failure/recovery paths. Equal
-templates or component tests written for the new design are not equivalence
-evidence. Normalize only documented intentional differences; control randomness
-and concurrency where needed. Run cheap differential checks before expensive
-end-to-end confirmation; parity does not replace the original quality gates.
-
-Do not claim the port complete while a preservation contract lacks evidence.
-If the oracle cannot run, retain it, identify the missing proof, and work on
-independent integration tasks; do not substitute plausibility for parity.
+- Read the frozen winning code, configuration, prompts/skills, and evidence.
+  Preserve actual behavior, including quirks whose contribution is unknown.
+  A rewritten spec or cleaner design does not supersede measured results.
+- Port first; experiment separately. Give delegates the same reference and
+  constraints. Record user-required differences; validate other behavioral
+  changes against the winner before adopting them.
+- Prove parity through the production entry point with matched inputs and
+  controlled external responses. Compare computed requests, decisions, complete
+  outputs, and relevant recovery paths—not just templates or component tests.
+  Normalize only documented intentional differences. Run these cheap checks
+  before costly confirmation, retaining the original quality gates.
+- Missing parity evidence means unfinished. Preserve the reference and continue
+  independent work rather than declaring equivalence.
 
 ## Rules
 

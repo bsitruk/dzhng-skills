@@ -186,31 +186,20 @@ whole feature is done.
 
 ## From research to implementation
 
-A validated spike is settled evidence, not raw material for an untested redesign.
-Read the accepted candidate itself, its prompts/skills and configuration, measured
-results, and experiment lessons. Freeze the runnable source/dependency closure and
-evaluation inputs by immutable identity in a durable reference location. Preserve
-the winning variant, not the latest file, and state the evidence's scope and limits.
+Freeze the accepted spike's runnable code, dependencies, configuration,
+inputs, prompts/skills, and evidence by immutable identity. Inspect what it
+actually does; option names and summaries are not proof of behavior.
 
-Carry a compact preservation contract into the spec: proven behavior → reference
-evidence → owning slice → parity gate. Include computed inputs, selection and
-expansion policy, ordering, output presentation, and agent instructions wherever
-they participate in the measured result. Inspect actual execution: a configured
-option may never have been enforced. Preserve measured mechanisms even when their
-individual contribution has not been isolated.
+Map **proven behavior → evidence → owning slice → parity gate** in the spec.
+Give every drafter this contract and the limits of the findings. Separate
+user-required differences from untested proposals; cleanup must not silently
+redesign the winner.
 
-Separate production integration from changes to experimental behavior. Identify
-user-required differences and proposals still needing experiments; neither may
-be silently folded into cleanup. Give every parallel drafter this same contract.
-Architectural simplicity does not justify dropping a proven stage, and agreement
-among drafts does not supersede measurements.
-
-Plan an early differential gate through the production entry point, using matched
-fixtures and controlled external responses to compare actual computed requests,
-decisions, and complete outputs against the frozen reference. Name allowable
-differences explicitly. Put this gate before expensive benchmark confirmation;
-retain the original outcome/quality gates for final acceptance. Every preservation
-row must have an owner and a check before the plan is ready to implement.
+Plan an early production-entry-point comparison against the frozen reference
+with matched inputs and controlled responses. Check computed requests,
+decisions, and complete outputs; name permitted differences. Every preservation
+row needs an owner and a check. Run parity before expensive confirmation and
+retain the original quality gates.
 
 ## Plan Folder
 
