@@ -598,7 +598,7 @@ const ShockRing: React.FC<{ s: number; at: number; color: string; speed: number 
 const INTRO_WORDS = [
   { text: "You know the goal.", z: 4.5, w: 8 },
   { text: "The path is", z: 1.5, w: 7 },
-  { text: "fog.", z: -1.5, w: 9 },
+  { text: "unknown.", z: -1.5, w: 9.5 },
 ];
 const IntroWords: React.FC<{ s: number }> = ({ s }) => {
   if (s >= CUE.drop) return null;
