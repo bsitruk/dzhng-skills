@@ -157,7 +157,10 @@ export const ringTex = () =>
 // Big words laid on the board (white; tinted by the material).
 export const wordTex = (text: string) =>
   make(`w${text}`, 2048, 384, (g) => {
+    // Shrink long lines to fit the canvas instead of clipping them.
     g.font = `900 300px ${SANS}`;
+    const size = Math.min(300, (300 * 1960) / g.measureText(text).width);
+    g.font = `900 ${size}px ${SANS}`;
     g.textAlign = "center";
     g.textBaseline = "middle";
     g.fillStyle = "#ffffff";

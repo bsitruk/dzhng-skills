@@ -326,8 +326,8 @@ timerTicks.forEach((s, i) => tick(s, 0.8 + i * 0.03, 0.9));
 riser(CUE.riser2[0], CUE.riser2[1], 1.2);
 impact(CUE.slam, 1.4);
 subDrop(CUE.slam, 1.1);
-pop(CUE.proofSub, 0.9);
-tick(CUE.disclosure, 0.7, 0.6);
+impact(CUE.slam2, 0.7);
+CUE.proofSub.forEach((s, i) => pop(s, 0.9 + i * 0.15));
 
 riser(CUE.dawn - 0.6, CUE.dawn, 0.5);
 impact(CUE.dawn, 0.4);

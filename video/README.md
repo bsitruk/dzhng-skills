@@ -5,7 +5,7 @@ A ~35s showreel-style launch video for this repo, made with the
 grows out of the hero art's *fog of war*: a hex continent under fog gets mapped
 (`/explore-unknowns`), sliced into territories (`/write-spec`), and built on at
 night while an agent verifies each territory (`/goal /implement-spec`). It ends
-on the unattended run's timer and collapses into the wordmark's period.
+on "the middle runs itself" and collapses into the wordmark's period.
 
 ```bash
 npm install
@@ -32,9 +32,10 @@ thumbnail; `PREROLL` shifts both picture and music.
 
 ## Claims to preserve
 
-- The proof number is the README's single unattended Codex run: **1d 16h**
-  (goal timer `1d 16h 40m 1s`). It is one run (n = 1), and the on-screen
-  disclosure says so. Keep it next to the number wherever it appears.
+- "The middle runs itself" and "hours → 2–3 days, unattended; your time is in
+  the bookends" restate the root README's full loop. Keep them tied to it.
+- The racing goal timer is the README screenshot's run (`1d 16h 40m 1s`),
+  shown as an example of a long unattended run, not as a headline claim.
 - "Claude Code · Codex · +70 harnesses" comes from the root README.
 
 The audio is verified by measurement (ffmpeg `ebur128` and a spectrogram), not

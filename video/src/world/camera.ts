@@ -7,9 +7,9 @@ type Key = { t: number; pos: V3; look: V3; cut?: boolean };
 
 const KEYS: Key[] = [
   // 1 · low over the fogged board, flying across the words
-  { t: -0.3, pos: [0, 6.5, 16], look: [0, 0, 2] },
-  { t: 2.0, pos: [0, 5.8, 10], look: [0, 0, -3] },
-  { t: 3.95, pos: [0, 4.2, 5], look: [0, 1.8, -4] },
+  { t: -0.3, pos: [0, 4.2, 15], look: [0, 1.2, 3] },
+  { t: 2.0, pos: [0, 3.8, 11.5], look: [0, 1.1, 0] },
+  { t: 3.95, pos: [0, 3.2, 8], look: [0, 1.8, -3] },
   // 2 · whip up to the aerial on the drop, then pull back
   { t: 4.0, pos: [0, 19, 9], look: [0, 0, 0], cut: true },
   { t: 5.2, pos: [0, 29, 17], look: [0, 0, 0.5] },

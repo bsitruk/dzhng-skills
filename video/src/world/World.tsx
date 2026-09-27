@@ -596,9 +596,9 @@ const ShockRing: React.FC<{ s: number; at: number; color: string; speed: number 
 
 // ---------- words in the world ----------
 const INTRO_WORDS = [
-  { text: "every goal", z: 7, w: 7.5 },
-  { text: "starts as", z: 3, w: 7 },
-  { text: "fog.", z: -1.5, w: 11 },
+  { text: "You know the goal.", z: 4.5, w: 8 },
+  { text: "The path is", z: 1.5, w: 7 },
+  { text: "fog.", z: -1.5, w: 9 },
 ];
 const IntroWords: React.FC<{ s: number }> = ({ s }) => {
   if (s >= CUE.drop) return null;
@@ -609,11 +609,14 @@ const IntroWords: React.FC<{ s: number }> = ({ s }) => {
         const p = spring(s, t, 2.2, 0.5);
         if (p <= 0) return null;
         const last = i === INTRO_WORDS.length - 1;
-        const stand = last ? inOutCubic(prog(s, t + 0.35, t + 0.9)) : 0;
-        const dissolve = last ? prog(s, 3.25, 3.9) : 0;
+        // Each word stands up to face the lens, holds, then sinks as the next arrives.
+        const stand = lerp(0.62, 1, inOutCubic(prog(s, t, t + 0.5)));
+        const next = CUE.fogWords[i + 1];
+        const leave = next === undefined ? 0 : inCubic(prog(s, next - 0.1, next + 0.25));
+        const dissolve = last ? prog(s, 3.3, 3.9) : leave;
         return (
-          <group key={w.text} position={[0, lerp(-0.3, 0.8, clamp(p)) + stand * 1.6 + dissolve * 0.8, w.z]}>
-            <mesh renderOrder={20} rotation={[-Math.PI / 2 + stand * (Math.PI / 2 - 0.12), 0, 0]} scale={[1 + dissolve * 0.4, 1 + dissolve * 0.4, 1]}>
+          <group key={w.text} position={[0, lerp(-0.5, 0.35, clamp(p)) + (w.w * 0.1875) / 2 - leave * 1.5 + (last ? dissolve * 0.8 : 0), w.z]}>
+            <mesh renderOrder={20} rotation={[-Math.PI / 2 + stand * (Math.PI / 2 - 0.2), 0, 0]} scale={[1 + (last ? dissolve * 0.4 : 0), 1 + (last ? dissolve * 0.4 : 0), 1]}>
               <planeGeometry args={[w.w, w.w * 0.1875]} />
               <meshBasicMaterial map={wordTex(w.text)} color={C.ink} transparent opacity={clamp(p * 2) * (1 - dissolve)} depthWrite={false} depthTest={false} fog={false} />
             </mesh>

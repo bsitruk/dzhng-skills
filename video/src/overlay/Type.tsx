@@ -149,7 +149,9 @@ export const Proof: React.FC<S> = ({ s }) => {
   const exit = inCubic(prog(s, CUE.dawn - 0.25, CUE.dawn));
   const k = kick(s);
   const lapse = prog(s, a, CUE.slam);
-  const push = lerp(1, 0.9, outCubic(prog(s, CUE.slam + 0.3, CUE.dawn)));
+  const push = lerp(1, 0.92, outCubic(prog(s, CUE.slam + 0.8, CUE.dawn)));
+  const slam2P = clamp((s - CUE.slam2) / 0.08);
+  const [s2x, s2y] = squash(s, CUE.slam2 + 0.08, 0.3);
   return (
     <div style={{ position: "absolute", inset: 0, opacity: 1 - exit, transform: `scale(${1 + exit * 0.4})`, filter: blur(exit * 12) }}>
       {!slammed && (
@@ -164,16 +166,18 @@ export const Proof: React.FC<S> = ({ s }) => {
       {slammed && (
         <>
           <Shards s={s} at={CUE.slam} x={960} y={430} />
-          <div style={{ position: "absolute", left: 0, right: 0, top: 430, textAlign: "center", transform: `translateY(-50%) scale(${lerp(2.4, 1, slamP) * sx * (1 + k * 0.015) * push}, ${lerp(2.4, 1, slamP) * sy * (1 + k * 0.015) * push})`, opacity: slamP }}>
-            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 380, lineHeight: 1, letterSpacing: -18, color: "#fff", textShadow: `0 0 ${70 + k * 50}px rgba(91,141,239,0.95), 0 10px 60px rgba(5,10,40,0.6)` }}>1d 16h</div>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 440, textAlign: "center", transform: `translateY(-50%) scale(${lerp(2.4, 1, slamP) * sx * (1 + k * 0.015) * push}, ${lerp(2.4, 1, slamP) * sy * (1 + k * 0.015) * push})`, opacity: slamP }}>
+            <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 250, lineHeight: 0.95, letterSpacing: -11, color: "#fff", textShadow: `0 0 ${70 + k * 50}px rgba(91,141,239,0.95), 0 10px 60px rgba(5,10,40,0.6)` }}>
+              <div>The middle</div>
+              <div style={{ color: C.periwinkle, transform: `scale(${lerp(2.2, 1, slam2P) * s2x}, ${lerp(2.2, 1, slam2P) * s2y})`, opacity: slam2P, filter: blur((1 - slam2P) * 12) }}>runs itself.</div>
+            </div>
           </div>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 690, textAlign: "center", fontFamily: SANS, fontWeight: 800, fontSize: 64, letterSpacing: -1.5, color: "#dfe6ff", textShadow: "0 4px 30px rgba(5,10,40,0.8)" }}>
-            <Word s={s} at={CUE.proofSub}>one unattended run,</Word> <Word s={s} at={CUE.proofSub + 0.25}>one goal.</Word>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 760, textAlign: "center", fontFamily: SANS, fontWeight: 800, fontSize: 66, letterSpacing: -1.5, color: "#ffffff", textShadow: "0 4px 24px rgba(5,10,40,1), 0 0 60px rgba(5,10,40,0.9)", lineHeight: 1.25 }}>
+            <div><Word s={s} at={CUE.proofSub[0]}>hours → 2–3 days, unattended.</Word></div>
+            <div style={{ color: "#c9d4ff", fontSize: 54 }}><Word s={s} at={CUE.proofSub[1]}>Your time is in the bookends.</Word></div>
           </div>
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 50, textAlign: "center", fontFamily: SANS, fontWeight: 600, fontSize: 32, color: "#d5dcf7", padding: "14px 0", background: "rgba(6,10,36,0.7)", opacity: outCubic(prog(s, CUE.disclosure, CUE.disclosure + 0.3)), textShadow: "0 2px 12px rgba(5,10,40,0.9)" }}>
-            One unattended Codex run pursuing a single goal on top of these skills (n = 1). Goal timer: <span style={{ fontFamily: MONO }}>1d 16h 40m 1s</span>.
-          </div>
-          <Rings s={s} at={CUE.slam} x={960} y={430} />
+          <Rings s={s} at={CUE.slam} x={960} y={330} />
+          <Rings s={s} at={CUE.slam2} x={960} y={560} />
         </>
       )}
     </div>

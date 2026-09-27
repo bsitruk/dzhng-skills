@@ -36,7 +36,7 @@ const range = (start: number, step: number, n: number) => Array.from({ length: n
 
 export const CUE = {
   // 1 · Fog: fly through the words.
-  fogWords: [0.5, 1.5, 2.5], // "every goal" "starts as" "fog."
+  fogWords: [0.25, 1.25, 2.25], // "You know the goal." "The path is" "fog."
   glints: [0.25, 1.25, 2.25, 3.0, 3.25, 3.5],
   riser1: [2.5, 4.0],
 
@@ -75,9 +75,9 @@ export const CUE = {
   riser2: [20.0, 22.0],
 
   // 6 · Proof.
-  slam: 22.0,
-  proofSub: 23.0,
-  disclosure: 23.5,
+  slam: 22.0, // "The middle"
+  slam2: 22.5, // "runs itself."
+  proofSub: [23.0, 23.75], // "hours → 2–3 days, unattended." "Your time is in the bookends."
 
   // 7 · Review the choices.
   dawn: 26.0,
