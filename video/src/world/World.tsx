@@ -14,7 +14,7 @@ import { getInputProps } from "remotion";
 import { clamp, inCubic, inOutCubic, kick, lerp, night, outBack, outCubic, outExpo, prog, spring } from "../anim.ts";
 import { cameraAt } from "./camera.ts";
 import { BORDERS, BUILDINGS, HEXES, LANDS, PROPS, RAIN_TARGETS, RESLICE_LAND, revealAt, type Hex } from "./grid.ts";
-import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, puffTex, questionTex, ringTex, skillTileTex, stakeTex, stampTex, terrainTex, wordTex } from "./textures.ts";
+import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, puffTex, questionTex, ringTex, skillTileTex, phraseTex, stakeTex, stampTex, terrainTex, wordTex } from "./textures.ts";
 
 export const LOCKUP_BG = "#080a12";
 // Sky: the hero art's periwinkle gradient by day, navy by night.
@@ -437,6 +437,9 @@ const hexLiftAt = (x: number, z: number, s: number) => {
 
 // ---------- building ----------
 const BOX = new RoundedBoxGeometry(1, 1, 1, 3, 0.07);
+// Scaffolding cage: box edges plus mid-level bands, drawn as lines.
+const SCAFFOLD_GEO = new THREE.EdgesGeometry(new THREE.BoxGeometry(1, 1, 1, 1, 4, 1));
+const SCAFFOLD = new THREE.LineBasicMaterial({ color: "#f5b82e", transparent: true, opacity: 0.85 });
 const Buildings: React.FC<{ s: number; n: number }> = ({ s, n }) => {
   const mat = useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#ffffff", map: facadeDayTex(), roughness: 0.28, metalness: 0.15, clearcoat: 0.8, clearcoatRoughness: 0.15, emissive: "#ffffff", emissiveMap: facadeTex() }), []);
   const flash = s >= CUE.slam ? Math.exp(-(s - CUE.slam) / 0.5) : 0;
@@ -445,13 +448,36 @@ const Buildings: React.FC<{ s: number; n: number }> = ({ s, n }) => {
   return (
     <>
       {BUILDINGS.map((b, i) => {
-        const g = spring(s, passTime(b.land) + 0.05 + b.k * 0.07, 2.2, 0.4);
+        // Construction: foundations go in when the plot passes, floors climb
+        // under scaffolding through the unattended run, and the building only
+        // tops out at dawn, when the choices are reviewed.
+        const start = passTime(b.land) + 0.05 + b.k * 0.07;
+        const g = spring(s, start, 2.2, 0.4);
         if (g <= 0.001) return null;
+        const floors = lerp(0.25, 0.85, prog(s, start, CUE.dawn) ** 0.8);
+        const done = spring(s, CUE.dawn + 0.1 + b.k * 0.05, 2.6, 0.4);
+        const built = Math.min(1.05, lerp(floors, 1, clamp(done, 0, 1.05))) * clamp(g, 0, 1.1);
         const h = HEXES[b.hex];
         const [ox, oz] = hexOffset(h, s);
         const top = hexHeight(h, s) + hexLift(h, s);
-        const hh = b.h * Math.max(0, g);
-        return <mesh key={i} geometry={BOX} material={mat} position={[h.x + ox, top + hh / 2, h.z + oz]} scale={[b.w * (2 - Math.min(1.2, g)) * 0.9, Math.max(0.001, hh), b.w * 0.9]} castShadow receiveShadow />;
+        const hh = b.h * Math.max(0.001, built);
+        const full = b.h * clamp(g);
+        const scaffold = 1 - clamp(done * 1.3);
+        const w = b.w * 0.9;
+        return (
+          <group key={i}>
+            <mesh geometry={BOX} material={mat} position={[h.x + ox, top + hh / 2, h.z + oz]} scale={[w, hh, w]} castShadow receiveShadow />
+            {scaffold > 0.01 && (
+              <mesh geometry={SCAFFOLD_GEO} material={SCAFFOLD} position={[h.x + ox, top + full / 2, h.z + oz]} scale={[w * 1.12, full, w * 1.12]} />
+            )}
+            {scaffold > 0.01 && (
+              <mesh position={[h.x + ox, top + hh + 0.02, h.z + oz]} rotation={[-Math.PI / 2, 0, 0]} scale={[w * 0.95, w * 0.95, 1]}>
+                <planeGeometry args={[1, 1]} />
+                <meshBasicMaterial color={new THREE.Color(3, 2.2, 0.8)} transparent opacity={0.3 * scaffold * (0.6 + 0.4 * Math.sin(s * 9 + i))} toneMapped={false} />
+              </mesh>
+            )}
+          </group>
+        );
       })}
     </>
   );
@@ -572,9 +598,9 @@ const ShockRing: React.FC<{ s: number; at: number; color: string; speed: number 
 
 // ---------- words in the world ----------
 const INTRO_WORDS = [
-  { text: "You know the goal.", z: 4.5, w: 8 },
-  { text: "The path is", z: 1.5, w: 7 },
-  { text: "unknown.", z: -1.5, w: 9.5 },
+  // Two phrases, contrasted: a crisp claim, then a foggy answer.
+  { parts: [["The goal is ", "#f4f6ff"], ["clear.", "#8fb0ff"]] as [string, string][], z: 3.5, w: 8.5 },
+  { parts: [["The terrain ", "#b4bde0"], ["isn't.", "#96a1cc"]] as [string, string][], z: -0.5, w: 8.5 },
 ];
 const IntroWords: React.FC<{ s: number }> = ({ s }) => {
   if (s >= CUE.drop) return null;
@@ -589,12 +615,14 @@ const IntroWords: React.FC<{ s: number }> = ({ s }) => {
         const stand = lerp(0.62, 1, inOutCubic(prog(s, t, t + 0.5)));
         const next = CUE.fogWords[i + 1];
         const leave = next === undefined ? 0 : inCubic(prog(s, next - 0.1, next + 0.25));
-        const dissolve = last ? prog(s, 3.3, 3.9) : leave;
+        const dissolve = last ? prog(s, 3.2, 3.9) : leave;
+        // The foggy phrase arrives out of focus and never fully sharpens.
+        const haze = last ? 0.6 * (1 - clamp(p)) + dissolve : 0;
         return (
-          <group key={w.text} position={[0, lerp(-0.5, 0.35, clamp(p)) + (w.w * 0.1875) / 2 - leave * 1.5 + (last ? dissolve * 0.8 : 0), w.z]}>
+          <group key={i} position={[0, lerp(-0.5, 0.35, clamp(p)) + (w.w * 0.1875) / 2 - leave * 1.5 + (last ? dissolve * 0.8 : 0), w.z]}>
             <mesh renderOrder={20} rotation={[-Math.PI / 2 + stand * (Math.PI / 2 - 0.2), 0, 0]} scale={[1 + (last ? dissolve * 0.4 : 0), 1 + (last ? dissolve * 0.4 : 0), 1]}>
               <planeGeometry args={[w.w, w.w * 0.1875]} />
-              <meshBasicMaterial map={wordTex(w.text)} color={C.fg} transparent opacity={clamp(p * 2) * (1 - dissolve)} depthWrite={false} depthTest={false} fog={false} />
+              <meshBasicMaterial map={haze > 0.02 ? phraseTex(w.parts, true) : phraseTex(w.parts, false)} color="#ffffff" transparent opacity={clamp(p * 2) * (1 - dissolve) * (last ? 1 - haze * 0.25 : 1)} depthWrite={false} depthTest={false} fog={false} />
             </mesh>
           </group>
         );
@@ -604,7 +632,7 @@ const IntroWords: React.FC<{ s: number }> = ({ s }) => {
 };
 
 const DocCard: React.FC<{ s: number }> = ({ s }) => {
-  const at = CUE.dawn + 0.9;
+  const at = CUE.dawn + 1.3;
   if (s < at || s > CUE.collapse[0] + 0.3) return null;
   const p = spring(s, at, 1.6, 0.5);
   const out = inCubic(prog(s, CUE.collapse[0] - 0.2, CUE.collapse[0] + 0.2));
@@ -847,13 +875,13 @@ const Cranes: React.FC<{ s: number }> = ({ s }) => (
       const first = CUE.visits.find((v) => v.land === land)!.t;
       const pass = passTime(land);
       const up = spring(s, first - 0.45, 2.2, 0.45);
-      const down = inCubic(prog(s, pass + 0.5, pass + 0.9));
+      const down = inCubic(prog(s, CUE.dawn + 0.1 + land * 0.04, CUE.dawn + 0.5 + land * 0.04));
       const k = clamp(up) * (1 - down);
       if (k <= 0.001) return null;
       const [x, z] = landPos(land, s);
       const top = landTop(land, s);
       const outward = Math.atan2(L.dir[1] || 1, L.dir[0] || 0.3);
-      const jib = s * 0.9 + land;
+      const jib = s * (s > CUE.timelapse[0] && s < CUE.dawn ? 2.4 : 0.9) + land;
       const H = 3.2;
       const blink = Math.floor(s * 3 + land) % 2 ? 1 : 0.15;
       return (

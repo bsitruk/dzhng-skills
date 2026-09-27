@@ -247,3 +247,20 @@ export const stakeTex = () => {
   });
   return tex;
 };
+
+// A phrase with colored runs; `soft` renders it blurred, as if seen through fog.
+export const phraseTex = (parts: [string, string][], soft: boolean) =>
+  make(`ph${soft}${parts.map((p) => p.join(":")).join("|")}`, 2048, 384, (g) => {
+    g.font = `900 250px ${SANS}`;
+    const total = parts.reduce((a, [t]) => a + g.measureText(t).width, 0);
+    const size = Math.min(250, (250 * 1900) / total);
+    g.font = `900 ${size}px ${SANS}`;
+    let x = 1024 - parts.reduce((a, [t]) => a + g.measureText(t).width, 0) / 2;
+    g.textBaseline = "middle";
+    if (soft) g.filter = "blur(4px)";
+    for (const [text, color] of parts) {
+      g.fillStyle = color;
+      g.fillText(text, x, 200);
+      x += g.measureText(text).width;
+    }
+  });
