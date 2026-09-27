@@ -322,7 +322,7 @@ whoosh(CUE.night - 0.3, 0.5, 0.8, false);
 CUE.visits.forEach((v) => (v.ok ? checkBlip(v.t, 1.1) : thud(v.t)));
 whoosh(CUE.reslice - 0.1, 0.15, 0.7);
 tick(CUE.reslice, 1.4);
-timerTicks.forEach((s, i) => tick(s, 0.8 + i * 0.03, 0.9));
+timerTicks.forEach((s, i) => tick(s, 0.8 + (i % 16) * 0.04, 0.8));
 riser(CUE.riser2[0], CUE.riser2[1], 1.2);
 impact(CUE.slam, 1.4);
 subDrop(CUE.slam, 1.1);

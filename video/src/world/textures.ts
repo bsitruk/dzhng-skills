@@ -213,3 +213,33 @@ export const docTex = () =>
     g.font = `500 28px ${SANS}`;
     g.fillText("illustrative entries", 58, 950);
   });
+
+// Terrain detail: near-white grain, speckle, and faint strata; multiplies the
+// land color and doubles as the bump/roughness map.
+export const terrainTex = () => {
+  const tex = make("terrain", 512, 512, (g) => {
+    g.fillStyle = "#f2f2f2";
+    g.fillRect(0, 0, 512, 512);
+    let seed = 7;
+    const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+    for (let i = 0; i < 9000; i++) {
+      const v = 200 + Math.floor(rnd() * 55);
+      g.fillStyle = `rgba(${v},${v},${v},${0.25 + rnd() * 0.35})`;
+      const r = 0.6 + rnd() * 2.4;
+      g.beginPath();
+      g.arc(rnd() * 512, rnd() * 512, r, 0, Math.PI * 2);
+      g.fill();
+    }
+    for (let i = 0; i < 18; i++) {
+      g.strokeStyle = `rgba(150,150,150,${0.08 + rnd() * 0.1})`;
+      g.lineWidth = 1 + rnd() * 3;
+      g.beginPath();
+      const y = rnd() * 512;
+      g.moveTo(0, y);
+      for (let x = 0; x <= 512; x += 32) g.lineTo(x, y + Math.sin(x / 60 + i) * 10 + (rnd() - 0.5) * 6);
+      g.stroke();
+    }
+  });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+};

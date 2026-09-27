@@ -77,7 +77,7 @@ export const CUE = {
   // 6 · Proof.
   slam: 22.0, // "The middle"
   slam2: 22.5, // "runs itself."
-  proofSub: [23.0, 23.75], // "hours → 2–3 days, unattended." "Your time is in the bookends."
+  proofSub: [23.0, 23.75], // timer docks under the headline · "Your time is in the bookends."
 
   // 7 · Review the choices.
   dawn: 26.0,
@@ -93,18 +93,29 @@ export const CUE = {
   finalHit: 32.0,
 } as const;
 
-// The README's run: goal timer 1d 16h 40m 1s.
-export const RUN_SECONDS = 86400 + 16 * 3600 + 40 * 60 + 1;
-const TIMER_TICKS = 28;
-export const timerProgress = (s: number) => {
-  const [a, b] = CUE.timelapse;
-  const p = Math.min(1, Math.max(0, (s - a) / (b - a)));
-  return p ** 2.6;
+// The unattended timer: it races through hours in the time-lapse, then keeps
+// counting into days under "The middle runs itself." (illustrative, not a claim).
+const HOURS_AT_SLAM = 7 * 3600 + 23 * 60;
+const TIMER_END = 2 * 86400 + 21 * 3600 + 47 * 60;
+export const timerSeconds = (s: number) => {
+  const [a] = CUE.timelapse;
+  if (s <= a) return 0;
+  if (s < CUE.slam) return HOURS_AT_SLAM * ((s - a) / (CUE.slam - a)) ** 2;
+  const p = Math.min(1, (s - CUE.slam) / (CUE.dawn - 0.3 - CUE.slam));
+  return HOURS_AT_SLAM + (TIMER_END - HOURS_AT_SLAM) * p ** 1.3;
 };
-// A tick each time the timer crosses another 1/28 of the run: accelerating.
-export const timerTicks = Array.from({ length: TIMER_TICKS - 1 }, (_, i) =>
-  CUE.timelapse[0] + ((i + 1) / TIMER_TICKS) ** (1 / 2.6) * (CUE.timelapse[1] - CUE.timelapse[0]),
-);
+// A tick each time the counter crosses another 20 minutes (hours) or 4 hours (days).
+export const timerTicks: number[] = [];
+{
+  let last = 0;
+  for (let s = CUE.timelapse[0]; s < CUE.dawn; s += 0.002) {
+    const v = timerSeconds(s);
+    const step = v < HOURS_AT_SLAM ? 1200 : 4 * 3600;
+    const bucket = v < HOURS_AT_SLAM ? Math.floor(v / step) : 1000 + Math.floor(v / step);
+    if (bucket !== last && s > CUE.timelapse[0] + 0.05) timerTicks.push(s);
+    last = bucket;
+  }
+}
 
 // Command tags typed out as each step begins (bottom-left), one key per char.
 export const STEP_TAGS = [

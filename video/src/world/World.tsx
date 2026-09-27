@@ -3,6 +3,9 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { Post } from "./Post.tsx";
 import { ThreeCanvas } from "@remotion/three";
 import { random } from "remotion";
 import { CUE, SKILLS } from "../cues.ts";
@@ -10,7 +13,7 @@ import { C, H, W } from "../theme.ts";
 import { clamp, inCubic, inOutCubic, kick, lerp, night, outBack, outCubic, outExpo, prog, spring } from "../anim.ts";
 import { cameraAt } from "./camera.ts";
 import { BUILDINGS, HEXES, LANDS, RAIN_TARGETS, RESLICE_LAND, type Hex } from "./grid.ts";
-import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, groundTextTex, puffTex, questionTex, ringTex, skillTileTex, stampTex, wordTex } from "./textures.ts";
+import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, groundTextTex, puffTex, questionTex, ringTex, skillTileTex, stampTex, terrainTex, wordTex } from "./textures.ts";
 
 export const LOCKUP_BG = "#e3e9fc";
 // Sky: the hero art's periwinkle gradient by day, navy by night.
@@ -99,14 +102,17 @@ const passTime = (land: number) => CUE.visits.filter((v) => v.land === land && v
 
 // ---------- the canvas ----------
 export const World: React.FC<{ s: number }> = ({ s }) => (
-  <ThreeCanvas width={W} height={H} shadows gl={{ antialias: true, toneMapping: THREE.NoToneMapping }} camera={{ fov: 38, near: 0.1, far: 300, position: [0, 20, 20] }}>
+  <ThreeCanvas width={W} height={H} shadows={{ type: THREE.VSMShadowMap }} gl={{ antialias: false, alpha: false, preserveDrawingBuffer: true, toneMapping: THREE.NoToneMapping, powerPreference: "high-performance" }} camera={{ fov: 38, near: 0.1, far: 300, position: [0, 20, 20] }}>
     <Scene s={s} />
   </ThreeCanvas>
 );
 
 const Scene: React.FC<{ s: number }> = ({ s }) => {
-  const { camera, scene } = useThree();
   const n = night(s);
+  const { camera, scene, gl } = useThree();
+  const env = useMemo(() => new THREE.PMREMGenerator(gl).fromScene(new RoomEnvironment(), 0.04).texture, [gl]);
+  scene.environment = env;
+  scene.environmentIntensity = lerp(0.9, 0.3, n);
   const { pos, look } = cameraAt(s);
   camera.position.set(pos[0], pos[1], pos[2]);
   camera.lookAt(look[0], look[1], look[2]);
@@ -132,7 +138,7 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
     <>
       <hemisphereLight args={[col("#f4f7ff", "#3a4a9a", n), col("#8f9bbd", "#0a0f2a", n), lerp(0.7, 0.28, n) + flash * 0.3]} />
       <directionalLight position={[-10, 6, -12]} intensity={lerp(0.9, 0.7, n)} color={col("#c9d6ff", "#6f8cff", n)} />
-      <directionalLight position={sun} intensity={lerp(1.9, 0.55, n) + (lapse > 0 && lapse < 1 ? Math.max(0, Math.sin(az)) * 1.2 : 0)} color={col("#fff4e6", "#9fb4ff", n)} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-bias={-0.0004} />
+      <directionalLight position={sun} intensity={lerp(1.9, 0.55, n) + (lapse > 0 && lapse < 1 ? Math.max(0, Math.sin(az)) * 1.2 : 0)} color={col("#fff4e6", "#9fb4ff", n)} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-bias={-0.0006} shadow-radius={6} shadow-blurSamples={16} />
       <Hexes s={s} n={n} />
       <IntroWords s={s} />
       <Titles s={s} n={n} />
@@ -152,14 +158,44 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
       <DocCard s={s} />
       <ShockRing s={s} at={CUE.drop} color="#ffffff" speed={18} />
       <ShockRing s={s} at={CUE.slam} color={C.periwinkle} speed={20} />
+      <Dust s={s} n={n} />
+      <Sparks s={s} />
+      <Post s={s} n={n} />
     </>
   );
 };
 
 // ---------- hexes ----------
-const HEX_GEO = new THREE.CylinderGeometry(0.965, 0.965, 1, 6);
+// Bevelled hex prism, unit height centered on the origin, pointy along z.
+const HEX_GEO = (() => {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 6; i++) {
+    const a = ((90 + 60 * i) * Math.PI) / 180;
+    const x = Math.cos(a) * 0.9, y = Math.sin(a) * 0.9;
+    if (i === 0) shape.moveTo(x, y);
+    else shape.lineTo(x, y);
+  }
+  shape.closePath();
+  const bevel = 0.06;
+  const geo = new THREE.ExtrudeGeometry(shape, { depth: 1 - 2 * bevel, bevelEnabled: true, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 3 });
+  geo.rotateX(-Math.PI / 2);
+  geo.translate(0, -0.5 + bevel, 0);
+  geo.computeVertexNormals();
+  return geo;
+})();
 const Hexes: React.FC<{ s: number; n: number }> = ({ s, n }) => {
-  const mats = useMemo(() => HEXES.map(() => new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.78 })), []);
+  const mats = useMemo(() => {
+    const detail = terrainTex();
+    return HEXES.map((h) => {
+      const m = new THREE.MeshPhysicalMaterial({ map: detail, bumpMap: detail, bumpScale: 0.6, roughnessMap: detail, roughness: 0.7, clearcoat: 0.35, clearcoatRoughness: 0.35, sheen: 0.3, sheenRoughness: 0.8 });
+      // Each tile samples a different patch of the detail texture.
+      m.map = detail.clone();
+      m.map.repeat.set(0.35, 0.35);
+      m.map.offset.set(h.rnd, (h.rnd * 7.3) % 1);
+      m.map.needsUpdate = true;
+      return m;
+    });
+  }, []);
   const k = kick(s);
   return (
     <>
@@ -325,7 +361,7 @@ const Sonar: React.FC<{ s: number }> = ({ s }) => (
       return (
         <mesh key={i} position={[0, 0.95, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[r * 2.4, r * 2.4, 1]}>
           <planeGeometry args={[1, 1]} />
-          <meshBasicMaterial map={ringTex()} transparent opacity={(1 - t / 1.3) * 0.95} color={C.blue} blending={ADD} depthWrite={false} />
+          <meshBasicMaterial map={ringTex()} transparent opacity={(1 - t / 1.3) * 0.95} color={new THREE.Color(C.blue).multiplyScalar(3)} blending={ADD} depthWrite={false} />
         </mesh>
       );
     })}
@@ -373,7 +409,7 @@ const Lasers: React.FC<{ s: number }> = ({ s }) => (
           <group key={i} position={[0, 1.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <mesh>
               <torusGeometry args={[2.75, 0.045, 8, 96, Math.max(0.01, p * Math.PI * 2)]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={fade} />
+              <meshBasicMaterial color={new THREE.Color(5, 5, 5)} transparent opacity={fade} />
             </mesh>
             <mesh>
               <torusGeometry args={[2.75, 0.22, 8, 96, Math.max(0.01, p * Math.PI * 2)]} />
@@ -390,7 +426,7 @@ const Lasers: React.FC<{ s: number }> = ({ s }) => (
         <group key={i} rotation={[0, -a, 0]} position={[0, 1.1, 0]}>
           <mesh position={[mid, 0, 0]}>
             <boxGeometry args={[Math.max(0.01, len), 0.06, 0.06]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={fade} />
+            <meshBasicMaterial color={new THREE.Color(5, 5, 5)} transparent opacity={fade} />
           </mesh>
           <mesh position={[mid, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[Math.max(0.01, len), 0.6]} />
@@ -421,7 +457,7 @@ const ResliceLaser: React.FC<{ s: number }> = ({ s }) => {
     <group position={[x, landTop(RESLICE_LAND, s) + 0.15, z]} rotation={[0, -a, 0]}>
       <mesh position={[-3.5 + len / 2, 0, 0]}>
         <boxGeometry args={[Math.max(0.01, len), 0.07, 0.07]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={fade} />
+        <meshBasicMaterial color={new THREE.Color(5, 5, 5)} transparent opacity={fade} />
       </mesh>
       <mesh position={[-3.5 + len / 2, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[Math.max(0.01, len), 0.8]} />
@@ -460,12 +496,12 @@ const hexLiftAt = (x: number, z: number, s: number) => {
 };
 
 // ---------- building ----------
-const BOX = new THREE.BoxGeometry(1, 1, 1);
+const BOX = new RoundedBoxGeometry(1, 1, 1, 3, 0.07);
 const Buildings: React.FC<{ s: number; n: number }> = ({ s, n }) => {
-  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#ffffff", map: facadeDayTex(), roughness: 0.6, emissive: "#ffffff", emissiveMap: facadeTex() }), []);
+  const mat = useMemo(() => new THREE.MeshPhysicalMaterial({ color: "#ffffff", map: facadeDayTex(), roughness: 0.28, metalness: 0.15, clearcoat: 0.8, clearcoatRoughness: 0.15, emissive: "#ffffff", emissiveMap: facadeTex() }), []);
   const flash = s >= CUE.slam ? Math.exp(-(s - CUE.slam) / 0.5) : 0;
   mat.color.copy(col("#ffffff", "#28336e", n));
-  mat.emissiveIntensity = lerp(0.08, 1.6, n) + flash * 2.5 + kick(s) * 0.15 * n;
+  mat.emissiveIntensity = lerp(0.05, 1.5, n) + flash * 2.5 + kick(s) * 0.25 * n;
   return (
     <>
       {BUILDINGS.map((b, i) => {
@@ -515,7 +551,7 @@ const Agent: React.FC<{ s: number }> = ({ s }) => {
     <>
       <mesh position={[x, y, z]} scale={[p, p, p]}>
         <sphereGeometry args={[0.2, 24, 24]} />
-        <meshBasicMaterial color="#ffffff" />
+        <meshBasicMaterial color={new THREE.Color(6, 6, 8)} />
       </mesh>
       <sprite position={[x, y, z]} scale={[2.2 * p, 2.2 * p, 1]}>
         <spriteMaterial map={glowTex()} color={C.periwinkle} blending={ADD} transparent depthWrite={false} />
@@ -552,7 +588,7 @@ const Beams: React.FC<{ s: number }> = ({ s }) => {
         const w = b.w * (0.4 + t * 1.6);
         return (
           <mesh key={i} geometry={BEAM_GEO} position={[x, landTop(b.land, s) + 9, z]} scale={[w, 1, w]}>
-            <meshBasicMaterial map={beamTex()} color={b.color} transparent opacity={o} blending={ADD} depthWrite={false} side={THREE.DoubleSide} fog={false} />
+            <meshBasicMaterial map={beamTex()} color={new THREE.Color(b.color).multiplyScalar(3)} transparent opacity={o} blending={ADD} depthWrite={false} side={THREE.DoubleSide} fog={false} />
           </mesh>
         );
       })}
@@ -589,7 +625,7 @@ const ShockRing: React.FC<{ s: number; at: number; color: string; speed: number 
   return (
     <mesh position={[0, 1.4, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[r * 2.4, r * 2.4, 1]}>
       <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial map={ringTex()} color={color} transparent opacity={(1 - t / 1.4) * 0.9} blending={ADD} depthWrite={false} />
+      <meshBasicMaterial map={ringTex()} color={new THREE.Color(color).multiplyScalar(2.5)} transparent opacity={(1 - t / 1.4) * 0.9} blending={ADD} depthWrite={false} />
     </mesh>
   );
 };
@@ -674,3 +710,64 @@ const DocCard: React.FC<{ s: number }> = ({ s }) => {
     </group>
   );
 };
+
+// ---------- atmosphere ----------
+const MOTES = Array.from({ length: 220 }, (_, i) => ({
+  x: (random(`dx${i}`) - 0.5) * 26,
+  y: 0.5 + random(`dy${i}`) * 6,
+  z: (random(`dz${i}`) - 0.5) * 26,
+  r: random(`dr${i}`),
+}));
+// Dust motes catching the light; brighter and bluer at night.
+const Dust: React.FC<{ s: number; n: number }> = ({ s, n }) => {
+  if (s > CUE.collapse[0]) return null;
+  const tint = new THREE.Color(col("#ffffff", C.periwinkle, n)).multiplyScalar(lerp(1.2, 2.6, n));
+  return (
+    <>
+      {MOTES.map((m, i) => {
+        const x = m.x + Math.sin(s * 0.3 + i) * 0.6;
+        const y = m.y + ((s * (0.08 + m.r * 0.12)) % 1.5) + Math.sin(s * 0.7 + i * 1.7) * 0.2;
+        const z = m.z + Math.cos(s * 0.25 + i) * 0.6;
+        const tw = 0.4 + 0.6 * Math.abs(Math.sin(s * (1 + m.r * 2) + i));
+        const size = 0.06 + m.r * 0.1;
+        return (
+          <sprite key={i} position={[x, y, z]} scale={[size, size, 1]}>
+            <spriteMaterial map={glowTex()} color={tint} transparent opacity={tw * lerp(0.35, 0.9, n)} blending={ADD} depthWrite={false} />
+          </sprite>
+        );
+      })}
+    </>
+  );
+};
+
+// Sparks burst from each verified territory, and from all of them on the slam.
+const BURSTS = [
+  ...CUE.visits.map((v) => ({ t: v.t, land: v.land, color: v.ok ? "#7dffb0" : "#ff6b6f", n: 26, power: 1 })),
+  ...LANDS.map((_, land) => ({ t: CUE.slam + land * 0.03, land, color: C.periwinkle, n: 30, power: 1.6 })),
+];
+const Sparks: React.FC<{ s: number }> = ({ s }) => (
+  <>
+    {BURSTS.flatMap((b, bi) => {
+      const t = s - b.t;
+      if (t < 0 || t > 1.2) return [];
+      const [cx, cz] = landPos(b.land, s);
+      const cy = landTop(b.land, s) + 0.4;
+      const c = new THREE.Color(b.color).multiplyScalar(4);
+      return Array.from({ length: b.n }, (_, i) => {
+        const a = random(`sa${bi}${i}`) * Math.PI * 2;
+        const up = 3 + random(`su${bi}${i}`) * 5;
+        const out = (1 + random(`so${bi}${i}`) * 2.5) * b.power;
+        const drag = 1 - Math.exp(-t * 3);
+        const x = cx + Math.cos(a) * out * drag;
+        const z = cz + Math.sin(a) * out * drag;
+        const y = cy + up * t - 7 * t * t;
+        const f = 1 - t / 1.2;
+        return (
+          <sprite key={`${bi}-${i}`} position={[x, Math.max(cy - 0.3, y), z]} scale={[0.14 * f + 0.04, 0.14 * f + 0.04, 1]}>
+            <spriteMaterial map={glowTex()} color={c} transparent opacity={f} blending={ADD} depthWrite={false} />
+          </sprite>
+        );
+      });
+    })}
+  </>
+);

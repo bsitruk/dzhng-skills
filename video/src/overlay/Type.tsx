@@ -1,7 +1,7 @@
 // 2D type and graphic layers over the world, all driven by song time.
 import React from "react";
 import { random } from "remotion";
-import { CUE, INSTALL_CMD, RUN_SECONDS, SKILLS, STEP_TAGS, timerProgress } from "../cues.ts";
+import { CUE, INSTALL_CMD, SKILLS, STEP_TAGS, timerSeconds } from "../cues.ts";
 import { C, MONO, SANS } from "../theme.ts";
 import { clamp, inCubic, inOutCubic, kick, lerp, outCubic, outExpo, prog, spring, squash } from "../anim.ts";
 
@@ -31,9 +31,10 @@ const Letters: React.FC<S & { at: number; text: string; stagger?: number; style?
 
 const blur = (px: number) => (px > 0.05 ? `blur(${px}px)` : undefined);
 
+const pad = (v: number) => String(v).padStart(2, "0");
 export const fmtRun = (secs: number) => {
   const d = Math.floor(secs / 86400), h = Math.floor((secs % 86400) / 3600), m = Math.floor((secs % 3600) / 60), x = Math.floor(secs % 60);
-  return [d && `${d}d`, (d || h) && `${h}h`, (d || h || m) && `${m}m`, `${x}s`].filter(Boolean).join(" ");
+  return `${d}d ${pad(h)}h ${pad(m)}m ${pad(x)}s`;
 };
 
 // ---------- 2 · the drop and install ----------
@@ -140,9 +141,9 @@ export const Captions: React.FC<S> = ({ s }) => {
 export const Proof: React.FC<S> = ({ s }) => {
   const [a] = CUE.timelapse;
   if (s < a - 0.1 || s > CUE.dawn + 0.1) return null;
-  const secs = Math.floor(RUN_SECONDS * timerProgress(s));
+  const secs = Math.floor(timerSeconds(s));
+  const dock = inOutCubic(prog(s, CUE.proofSub[0] - 0.2, CUE.proofSub[0] + 0.2));
   const inP = spring(s, a, 2.2, 0.45);
-  const rise = inCubic(prog(s, CUE.slam - 0.12, CUE.slam));
   const slammed = s >= CUE.slam;
   const slamP = clamp((s - CUE.slam) / 0.08);
   const [sx, sy] = squash(s, CUE.slam + 0.08, 0.3);
@@ -154,30 +155,28 @@ export const Proof: React.FC<S> = ({ s }) => {
   const [s2x, s2y] = squash(s, CUE.slam2 + 0.08, 0.3);
   return (
     <div style={{ position: "absolute", inset: 0, opacity: 1 - exit, transform: `scale(${1 + exit * 0.4})`, filter: blur(exit * 12) }}>
-      {!slammed && (
-        <div style={{ position: "absolute", left: 960, top: lerp(850, 470, rise), transform: `translate(-50%,-50%) scale(${inP * lerp(1, 2.4, rise) * (1 + lapse * 0.25)})`, textAlign: "center", opacity: 1 - rise }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 14, fontFamily: MONO, fontWeight: 700, fontSize: 30, color: "#ffb3b5", letterSpacing: 6, padding: "8px 20px", borderRadius: 999, background: "rgba(60,12,24,0.85)" }}>
-            <span style={{ width: 16, height: 16, borderRadius: 8, background: C.red, opacity: Math.floor(s * 4) % 2 ? 0.35 : 1 }} />
-            UNATTENDED
-          </div>
-          <div style={{ fontFamily: MONO, fontWeight: 700, fontSize: 120, color: "#fff", marginTop: 10, textShadow: `0 0 ${30 + lapse * 60}px rgba(143,176,255,0.9)`, whiteSpace: "nowrap" }}>{fmtRun(secs)}</div>
+      {/* One counter throughout: hours in the time-lapse, days under the headline. */}
+      <div style={{ position: "absolute", left: 960, top: slammed ? lerp(880, 800, dock) : 870, transform: `translate(-50%,-50%) scale(${inP * (slammed ? lerp(1.15, 0.9, dock) : 1 + lapse * 0.15)})`, textAlign: "center" }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 14, fontFamily: MONO, fontWeight: 700, fontSize: 30, color: "#ffb3b5", letterSpacing: 6, padding: "8px 20px", borderRadius: 999, background: "rgba(60,12,24,0.85)" }}>
+          <span style={{ width: 16, height: 16, borderRadius: 8, background: C.red, opacity: Math.floor(s * 4) % 2 ? 0.35 : 1 }} />
+          UNATTENDED
         </div>
-      )}
+        <div style={{ fontFamily: MONO, fontWeight: 700, fontSize: 116, color: "#fff", marginTop: 8, textShadow: `0 0 ${30 + lapse * 60}px rgba(143,176,255,0.9), 0 4px 30px rgba(5,10,40,0.9)`, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{fmtRun(secs)}</div>
+      </div>
       {slammed && (
         <>
           <Shards s={s} at={CUE.slam} x={960} y={430} />
-          <div style={{ position: "absolute", left: 0, right: 0, top: 440, textAlign: "center", transform: `translateY(-50%) scale(${lerp(2.4, 1, slamP) * sx * (1 + k * 0.015) * push}, ${lerp(2.4, 1, slamP) * sy * (1 + k * 0.015) * push})`, opacity: slamP }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 380, textAlign: "center", transform: `translateY(-50%) scale(${lerp(2.4, 1, slamP) * sx * (1 + k * 0.015) * push}, ${lerp(2.4, 1, slamP) * sy * (1 + k * 0.015) * push})`, opacity: slamP }}>
             <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 250, lineHeight: 0.95, letterSpacing: -11, color: "#fff", textShadow: `0 0 ${70 + k * 50}px rgba(91,141,239,0.95), 0 10px 60px rgba(5,10,40,0.6)` }}>
               <div>The middle</div>
               <div style={{ color: C.periwinkle, transform: `scale(${lerp(2.2, 1, slam2P) * s2x}, ${lerp(2.2, 1, slam2P) * s2y})`, opacity: slam2P, filter: blur((1 - slam2P) * 12) }}>runs itself.</div>
             </div>
           </div>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 760, textAlign: "center", fontFamily: SANS, fontWeight: 800, fontSize: 66, letterSpacing: -1.5, color: "#ffffff", textShadow: "0 4px 24px rgba(5,10,40,1), 0 0 60px rgba(5,10,40,0.9)", lineHeight: 1.25 }}>
-            <div><Word s={s} at={CUE.proofSub[0]}>hours → 2–3 days, unattended.</Word></div>
-            <div style={{ color: "#c9d4ff", fontSize: 54 }}><Word s={s} at={CUE.proofSub[1]}>Your time is in the bookends.</Word></div>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 960, textAlign: "center", fontFamily: SANS, fontWeight: 800, fontSize: 50, letterSpacing: -1, color: "#dfe6ff", textShadow: "0 4px 24px rgba(5,10,40,1)" }}>
+            <Word s={s} at={CUE.proofSub[1]}>Your time is in the bookends.</Word>
           </div>
-          <Rings s={s} at={CUE.slam} x={960} y={330} />
-          <Rings s={s} at={CUE.slam2} x={960} y={560} />
+          <Rings s={s} at={CUE.slam} x={960} y={270} />
+          <Rings s={s} at={CUE.slam2} x={960} y={500} />
         </>
       )}
     </div>

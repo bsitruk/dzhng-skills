@@ -54,10 +54,18 @@ into explainer or demo:
   background, or light.
 - **Deaf.** Motion ignores the music, or the music sits under the picture
   instead of driving it.
+- **Prototype 3D.** Untextured primitives under flat light with no lens: it
+  reads as a tech demo. If the piece goes 3D, finish it like a game
+  cinematic: physically based materials with surface detail and bevels that
+  catch light, reflections and soft shadows, emissives that bloom, and a lens
+  (ambient occlusion, depth of field, grain, aberration on impacts).
 
 ## Rules
 
 - **Rebuild, never screenshot.** Break any UI down into parts that can move.
+- **Judge effects in a rendered frame, never the live preview.** Frame-by-frame
+  renderers (Remotion's manual advance, for one) can silently drop a post
+  stack or a canvas layer that looks fine live.
 - **Claims stay exact.** Restate measured results with their disclosure (sample
   size, exclusions, tradeoffs) in small type; never round or generalize past
   the source.

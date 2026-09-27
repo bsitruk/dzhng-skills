@@ -32,10 +32,10 @@ thumbnail; `PREROLL` shifts both picture and music.
 
 ## Claims to preserve
 
-- "The middle runs itself" and "hours → 2–3 days, unattended; your time is in
-  the bookends" restate the root README's full loop. Keep them tied to it.
-- The racing goal timer is the README screenshot's run (`1d 16h 40m 1s`),
-  shown as an example of a long unattended run, not as a headline claim.
+- "The middle runs itself" and "Your time is in the bookends" restate the root
+  README's full loop. Keep them tied to it.
+- The unattended timer counts up through hours into days as an illustration of
+  a long autonomous run; it is not a measured claim.
 - "Claude Code · Codex · +70 harnesses" comes from the root README.
 
 The audio is verified by measurement (ffmpeg `ebur128` and a spectrogram), not
