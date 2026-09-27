@@ -42,6 +42,9 @@ Text is the last resort. Before any word goes on screen, find the picture
 that makes it unnecessary: an object that transforms, a world that changes,
 motion that performs the idea. Keep text only where nothing visual can carry
 it: the product's real commands, its name, and a claim that must be exact.
+The one exception is orientation: give each shot one header saying what is
+happening (it can be dynamic, like a live count that ticks with the action),
+or the best animation reads as random motion.
 When a draft leans on labels, captions, or subtitles to explain what is
 happening, redesign the shot instead of rewording the text.
 

@@ -2,6 +2,7 @@
 import React from "react";
 import { random } from "remotion";
 import { CUE, INSTALL_CMD, SKILLS, STEP_TAGS, timerSeconds } from "../cues.ts";
+import { HEXES, LANDS, PROPS, revealAt } from "../world/grid.ts";
 import { C, MONO, SANS } from "../theme.ts";
 import { clamp, inCubic, inOutCubic, kick, lerp, outCubic, outExpo, prog, spring, squash } from "../anim.ts";
 
@@ -95,6 +96,49 @@ export const Install: React.FC<S & { poster?: boolean }> = ({ s, poster }) => {
 };
 
 // ---------- 3–5 · the step's real command, typed bottom-left ----------
+// One header per mechanism shot, with a live count that ticks with the action.
+const SLICE_COUNTS = [2, 4, 6, 7]; // territories grouped by each cut
+const REVEALS = PROPS.map((p) => revealAt(HEXES[p.hex], CUE.pulses));
+const PASSES = LANDS.map((_, land) => CUE.visits.filter((v) => v.land === land && v.ok).at(-1)!.t);
+const HEADERS = [
+  {
+    ...STEP_TAGS[0],
+    count: (s: number) => REVEALS.filter((t) => t > s).length,
+    ticks: REVEALS,
+    render: (n: React.ReactNode) => <>{n} unknowns left</>,
+  },
+  {
+    ...STEP_TAGS[1],
+    count: (s: number) => SLICE_COUNTS[CUE.lasers.filter((t) => t <= s).length - 1] ?? 0,
+    ticks: [...CUE.lasers],
+    render: (n: React.ReactNode) => <>{n} verifiable slices</>,
+  },
+  {
+    ...STEP_TAGS[2],
+    count: (s: number) => PASSES.filter((t) => t <= s).length,
+    ticks: PASSES,
+    render: (n: React.ReactNode) => <>{n}/{LANDS.length} slices verified</>,
+  },
+];
+export const StepHeaders: React.FC<S> = ({ s }) => (
+  <>
+    {HEADERS.map((h) => {
+      if (s < h.at || s > h.until) return null;
+      const n = h.count(s);
+      const last = Math.max(-Infinity, ...h.ticks.filter((t) => t <= s));
+      const bump = s - last < 0.3 ? Math.exp(-(s - last) / 0.08) : 0;
+      const out = inCubic(prog(s, h.until - 0.2, h.until));
+      return (
+        <div key={h.cmd} style={{ position: "absolute", left: 80, top: 70, fontFamily: SANS, fontWeight: 900, fontSize: 92, letterSpacing: -3, color: C.fg, textShadow: "0 4px 24px rgba(4,6,16,0.95), 0 0 60px rgba(4,6,16,0.8)", opacity: 1 - out, transform: `translateY(${out * -40}px)`, whiteSpace: "nowrap" }}>
+          <Word s={s} at={h.at + 0.05}>
+            {h.render(<span style={{ display: "inline-block", color: C.periwinkle, minWidth: "1.2ch", textAlign: "right", fontVariantNumeric: "tabular-nums", transform: `scale(${1 + bump * 0.25})` }}>{n}</span>)}
+          </Word>
+        </div>
+      );
+    })}
+  </>
+);
+
 export const CommandTags: React.FC<S> = ({ s }) => (
   <>
     {STEP_TAGS.map((t, i) => {
@@ -149,7 +193,7 @@ export const Proof: React.FC<S> = ({ s }) => {
           <Shards s={s} at={CUE.slam} x={960} y={430} />
           <div style={{ position: "absolute", left: 0, right: 0, top: 380, textAlign: "center", transform: `translateY(-50%) scale(${lerp(2.4, 1, slamP) * sx * (1 + k * 0.015) * push}, ${lerp(2.4, 1, slamP) * sy * (1 + k * 0.015) * push})`, opacity: slamP }}>
             <div style={{ fontFamily: SANS, fontWeight: 900, fontSize: 250, lineHeight: 0.95, letterSpacing: -11, color: "#fff", textShadow: `0 0 ${70 + k * 50}px rgba(91,141,239,0.95), 0 10px 60px rgba(5,10,40,0.6)` }}>
-              <div>The middle</div>
+              <div>The factory</div>
               <div style={{ color: C.periwinkle, transform: `scale(${lerp(2.2, 1, slam2P) * s2x}, ${lerp(2.2, 1, slam2P) * s2y})`, opacity: slam2P, filter: blur((1 - slam2P) * 12) }}>runs itself.</div>
             </div>
           </div>

@@ -19,7 +19,7 @@ export const KeyArt: React.FC = () => {
       <World s={24.5} />
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 42%, rgba(10,16,48,0.2) 0%, rgba(10,16,48,0.75) 70%)" }} />
       <div style={{ position: "absolute", left: 0, right: 0, top: 200, textAlign: "center", fontFamily: SANS, fontWeight: 900, fontSize: 250, lineHeight: 0.95, letterSpacing: -11, color: "#fff", textShadow: "0 0 80px rgba(91,141,239,0.95)" }}>
-        <div>The middle</div>
+        <div>The factory</div>
         <div style={{ color: C.periwinkle }}>runs itself.</div>
       </div>
       <div style={{ position: "absolute", left: 90, bottom: 80, fontFamily: SANS, fontWeight: 900, fontSize: 96, letterSpacing: -4, color: "#fff" }}>skills<span style={{ color: C.blue }}>.</span></div>

@@ -5,7 +5,7 @@ A ~35s showreel-style launch video for this repo, made with the
 grows out of the hero art's *fog of war*: a hex continent under fog gets mapped
 (`/explore-unknowns`), sliced into territories (`/write-spec`), and built on at
 night while an agent verifies each territory (`/goal /implement-spec`). It ends
-on "the middle runs itself" and collapses into the wordmark's period.
+on "the factory runs itself" and collapses into the wordmark's period.
 
 ```bash
 npm install
@@ -32,8 +32,8 @@ thumbnail; `PREROLL` shifts both picture and music.
 
 ## Claims to preserve
 
-- "The middle runs itself" restates the root README's full loop. Keep it tied
-  to it.
+- "The factory runs itself" restates the root README's unattended middle of
+  the full loop ("software factories"). Keep it tied to it.
 - The unattended timer counts up through hours into days as an illustration of
   a long autonomous run; it is not a measured claim.
 - "Claude Code · Codex · +70 harnesses" comes from the root README.

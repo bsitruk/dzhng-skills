@@ -1,6 +1,7 @@
 // Synthesizes the soundtrack from the cue sheet: a 120 BPM synth-pop bed plus
 // one sound per on-screen event. Writes public/raw.wav; master.ts loudnorms it.
 import { writeFileSync } from "node:fs";
+import { HEXES, PROPS, revealAt } from "../src/world/grid.ts";
 import {
   BAR, BEAT, CUE, DURATION, PREROLL, SECTIONS, SONG_END, STEP_TAGS, timerTicks,
 } from "../src/cues.ts";
@@ -309,6 +310,8 @@ CUE.rain.forEach((s, i) => {
 
 whoosh(CUE.explore - 0.3, 0.4, 0.8);
 STEP_TAGS.forEach((tag) => tag.keys.forEach((s) => key(s)));
+// The unknowns counter ticks down as each feature is uncovered.
+PROPS.forEach((p, i) => tick(revealAt(HEXES[p.hex], CUE.pulses), 1.2 + (i % 5) * 0.06, 0.5));
 CUE.pulses.forEach((s) => ping(s));
 whoosh(CUE.slice - 0.3, 0.4, 0.8);
 CUE.lasers.forEach((s) => zap(s));

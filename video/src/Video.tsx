@@ -4,7 +4,7 @@ import { CUE, FPS, PREROLL } from "./cues.ts";
 import { C, H, W, fontsReady } from "./theme.ts";
 import { clamp, inCubic, inOutCubic, lerp, night, prog, shake } from "./anim.ts";
 import { LOCKUP_BG, World } from "./world/World.tsx";
-import { Choices, CommandTags, DOT, Install, Lockup, Proof } from "./overlay/Type.tsx";
+import { Choices, CommandTags, StepHeaders, DOT, Install, Lockup, Proof } from "./overlay/Type.tsx";
 
 // Song time s = video time − PREROLL. The pre-roll holds the finished install
 // over the aerial world as the feed thumbnail, then blows into the fog.
@@ -57,6 +57,7 @@ export const LaunchVideo: React.FC = () => {
           <>
             <Install s={s} />
             <CommandTags s={s} />
+            <StepHeaders s={s} />
             <Proof s={s} />
             <Choices s={s} />
             <Lockup s={s} />
