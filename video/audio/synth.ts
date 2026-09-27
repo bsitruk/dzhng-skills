@@ -2,7 +2,7 @@
 // one sound per on-screen event. Writes public/raw.wav; master.ts loudnorms it.
 import { writeFileSync } from "node:fs";
 import {
-  BAR, BEAT, CUE, DURATION, PREROLL, SECTIONS, SONG_END, counterTicks,
+  BAR, BEAT, CUE, DURATION, PREROLL, SECTIONS, SONG_END, STEP_TAGS, timerTicks,
 } from "../src/cues.ts";
 
 const SR = 48000;
@@ -62,7 +62,7 @@ const CHORDS = [
   { root: 41, notes: [57, 60, 65, 69] },
 ];
 const chordAt = (s: number) => CHORDS[Math.floor(Math.max(0, s) / BAR) % 4];
-const kickOn = (s: number) => inRange(s, SECTIONS.drop) || inRange(s, SECTIONS.drop2);
+const kickOn = (s: number) => inRange(s, SECTIONS.dropA) || inRange(s, SECTIONS.night) || inRange(s, SECTIONS.dropB) || inRange(s, SECTIONS.dropC);
 const kicks: number[] = [];
 for (let s = 0; s < SONG_END; s += BEAT) if (kickOn(s)) kicks.push(s);
 
@@ -204,18 +204,50 @@ function ding(s: number, midi = 96, gain = 1) {
   }, 0.16 * gain, 0, 0.6);
 }
 
+// ---------- more voices ----------
+function sparkle(s: number, midi = 100, gain = 1) {
+  place(s, 0.6, (_, t) => (Math.sin(2 * Math.PI * hz(midi) * t) + 0.5 * Math.sin(2 * Math.PI * hz(midi + 7) * t)) * env(t, 0.002, 0.12), 0.12 * gain, (noise() * 0.8), 0.8);
+}
+function ping(s: number, gain = 1) {
+  place(s, 1.4, (_, t) => {
+    const f = 1500 * Math.exp(-t / 0.4) + 700;
+    return Math.sin(2 * Math.PI * f * t) * env(t, 0.001, 0.25);
+  }, 0.22 * gain, 0, 0.9);
+}
+function zap(s: number, gain = 1) {
+  const lp = svf("lp", 3);
+  place(s - 0.05, 0.35, (_, t) => {
+    const f = 3000 * Math.exp(-t / 0.06) + 120;
+    return lp(saw(f * t) + noise() * 0.3, 6000 * Math.exp(-t / 0.1) + 300) * env(t, 0.001, 0.09);
+  }, 0.35 * gain, (noise() * 0.6), 0.4);
+}
+function rumble(s: number, dur: number, gain = 1) {
+  const lp = svf("lp", 0.8);
+  place(s, dur, (_, t) => lp(noise(), 90 + 200 * (t / dur)) * 3 * Math.sin(Math.PI * Math.min(1, t / dur)), 0.5 * gain);
+}
+function subDrop(s: number, gain = 1) {
+  place(s, 1.2, (_, t) => Math.sin(2 * Math.PI * (28 * t + 40 * 0.4 * (1 - Math.exp(-t / 0.4)))) * env(t, 0.005, 0.5), 0.6 * gain);
+}
+function scratch(s: number) {
+  const bp = svf("bp", 2);
+  place(s, 0.25, (_, t) => bp(noise(), 800 + 5000 * (t / 0.25)) * env(t, 0.005, 0.1) * 2, 0.35, 0.2);
+}
+
 // ---------- the bed ----------
-for (const k of kicks) kick(k, k === SECTIONS.drop2[0] || k === CUE.drop ? 1.15 : 1);
+const drumsOn = (s: number) => kickOn(s);
+for (const k of kicks) kick(k, [CUE.drop, CUE.slam, CUE.lockup].some((t) => Math.abs(t - k) < 0.01) ? 1.2 : 1);
 for (let s = 0; s < SONG_END; s += BEAT) {
   const beat = Math.round(s / BEAT) % 4;
-  if (kickOn(s) && (beat === 1 || beat === 3)) clap(s);
+  if (drumsOn(s) && (beat === 1 || beat === 3)) clap(s, inRange(s, SECTIONS.night) ? 0.7 : 1);
+  // Heartbeat sub in the fog.
+  if (inRange(s, SECTIONS.intro) && s > 0.4) place(s, 0.3, (_, t) => Math.sin(2 * Math.PI * 50 * t) * env(t, 0.004, 0.09), 0.5);
 }
 for (let s = 0; s < SONG_END; s += BEAT / 4) {
   const sixteenth = Math.round(s / (BEAT / 4)) % 4;
-  if (kickOn(s)) {
-    if (sixteenth === 2) hat(s, true, 0.9, 0.2);
+  if (drumsOn(s)) {
+    if (sixteenth === 2) hat(s, true, inRange(s, SECTIONS.night) ? 0.6 : 0.9, 0.2);
     else hat(s, false, sixteenth === 0 ? 0.5 : 0.8, -0.25);
-  } else if (inRange(s, [1, 3.5]) && sixteenth === 2) hat(s, false, 0.5, 0.2);
+  } else if (inRange(s, SECTIONS.breath) && sixteenth === 2) hat(s, false, 0.4, 0.2);
 }
 // Snare roll through the build: quarters → eighths → sixteenths.
 for (let s = SECTIONS.build[0]; s < SECTIONS.build[1]; ) {
@@ -223,81 +255,95 @@ for (let s = SECTIONS.build[0]; s < SECTIONS.build[1]; ) {
   clap(s, 0.35 + 0.65 * p);
   s += p < 0.5 ? BEAT : p < 0.75 ? BEAT / 2 : BEAT / 4;
 }
-// Bass: pumping eighths in the drops.
+// Bass: pumping eighths wherever the kick plays.
 for (let s = 0; s < SONG_END; s += BEAT / 2) {
-  if (!kickOn(s)) continue;
+  if (!drumsOn(s)) continue;
   const { root } = chordAt(s);
   const off = Math.round(s / (BEAT / 2)) % 2 === 1;
   bassNote(s, root + (off ? 12 : 0), BEAT / 2);
 }
-// Pad: dark and filtered in the intro, open in the drops, swelling through the build.
+// Pad: dark in the fog, open in the drops, dusky at night, swelling through builds.
 pad(0, SONG_END, (s) => {
-  if (s < 4) return 300 + 1500 * (s / 4) ** 2;
-  if (inRange(s, SECTIONS.breakdown)) return 1200;
-  if (inRange(s, SECTIONS.build)) return 1200 + 4000 * ((s - 24) / 2) ** 2;
+  if (s < 4) return 250 + 1400 * (s / 4) ** 2;
+  if (inRange(s, SECTIONS.night)) return 1300;
+  if (inRange(s, SECTIONS.build)) return 1300 + 4000 * ((s - 20) / 2) ** 2;
+  if (inRange(s, SECTIONS.breath)) return 1800 + 2500 * Math.max(0, (s - 29) / 1);
   if (s >= SECTIONS.outro[0]) return 3000;
-  return 2600;
+  return 2700;
 }, 1);
-// Arp: sixteenths over chord tones.
+// Arp: sixteenths over chord tones in the drops and the breath.
 for (let s = 0; s < SECTIONS.outro[0]; s += BEAT / 4) {
-  const inDrop = kickOn(s);
-  const inBreak = inRange(s, SECTIONS.breakdown) || inRange(s, SECTIONS.build);
-  if (!inDrop && !inBreak) continue;
+  const inDrop = drumsOn(s);
+  const soft = inRange(s, SECTIONS.breath) || inRange(s, SECTIONS.build);
+  if (!inDrop && !soft) continue;
   const { notes } = chordAt(s);
   const i = Math.round(s / (BEAT / 4));
-  const pattern = [0, 1, 2, 3, 2, 1, 3, 2];
-  const n = notes[pattern[i % 8]] + 12;
-  const bright = inBreak ? 900 + 3000 * Math.max(0, (s - 24) / 2) : 3500;
-  pluck(s, n, inBreak ? 0.12 : 0.14, bright, i % 2 ? 0.35 : -0.35);
+  const n = notes[[0, 1, 2, 3, 2, 1, 3, 2][i % 8]] + 12;
+  pluck(s, n, soft ? 0.1 : 0.13, soft ? 1500 : 3500, i % 2 ? 0.35 : -0.35);
 }
-// Final chord hit.
 for (const n of CHORDS[0].notes) pluck(CUE.finalHit, n + 12, 0.2, 5000, 0);
 bassNote(CUE.finalHit, 36, 1.2);
 
 // ---------- cue sounds ----------
-whoosh(-PREROLL, PREROLL + 0.05, 0.9); // pre-roll whoosh into the first hit
-impact(0, 0.35);
-CUE.coldWords.forEach((s, i) => pop(s, 1 + i * 0.12));
-CUE.coldChecks.forEach((s) => checkBlip(s));
-CUE.fogWords.forEach((s, i) => pop(s, 0.8 - i * 0.1));
-whoosh(CUE.fogRoll, 1.0, 0.8, false);
-CUE.fogMarks.forEach((s, i) => tick(s, 0.6 + i * 0.1, 1.2));
-riser(CUE.riser1[0], CUE.riser1[1]);
-impact(CUE.drop, 1);
+whoosh(-PREROLL, PREROLL + 0.05, 0.9);
+impact(0, 0.3);
+CUE.glints.forEach((s, i) => sparkle(s, 96 + (i % 3) * 3));
+CUE.fogWords.forEach((s, i) => {
+  pop(s, 0.55 + i * 0.08, 1.3);
+  if (i < 2) whoosh(s + 0.55, 0.7, 1.1); // the word flies past the lens
+});
+riser(CUE.riser1[0], CUE.riser1[1], 1.1);
+impact(CUE.drop, 1.2);
+subDrop(CUE.drop);
 
 CUE.tagWords.forEach((s, i) => pop(s, 1 + i * 0.1, 1, i % 2 ? 0.3 : -0.3));
-whoosh(CUE.termIn - 0.2, 0.35, 0.7);
+whoosh(5.35, 0.3, 0.7);
 CUE.typing.forEach((s) => key(s));
 key(CUE.enter, true);
 pop(CUE.enter, 0.8);
-CUE.chips.forEach((s, i) => tick(s, 1 + (i % 8) * 0.06, 0.8, ((i % 6) - 2.5) / 4));
-ding(CUE.installed, 96);
-whoosh(CUE.zoomThrough, 0.5, 1);
+CUE.rain.forEach((s, i) => {
+  const { notes } = chordAt(s);
+  pluck(s, notes[i % 4] + 12 + 12 * Math.floor(i / 8), 0.09, 4000, ((i % 5) - 2) / 3);
+  tick(s, 1 + (i % 6) * 0.05, 0.6);
+});
 
-CUE.steps.forEach((s) => impact(s, 0.3));
-CUE.quadrants.forEach((s, i) => pop(s, 0.9 + i * 0.15));
-CUE.slices.forEach((s) => { whoosh(s - 0.08, 0.12, 0.6); tick(s, 1.3); });
-pop(CUE.territoriesFill, 0.7, 1.4);
-CUE.verdicts.forEach((v) => (v.ok ? checkBlip(v.t, 1.1) : thud(v.t)));
+whoosh(CUE.explore - 0.3, 0.4, 0.8);
+STEP_TAGS.forEach((tag) => tag.keys.forEach((s) => key(s)));
+CUE.pulses.forEach((s) => ping(s));
+whoosh(CUE.slice - 0.3, 0.4, 0.8);
+CUE.lasers.forEach((s) => zap(s));
+rumble(CUE.rise - 0.1, 0.9);
+ding(CUE.color, 91, 0.8);
+ding(CUE.color + 0.05, 95, 0.6);
+CUE.flags.forEach((s, i) => pop(s, 1 + i * 0.07, 0.8, ((i % 3) - 1) * 0.4));
+
+impact(CUE.night, 0.35);
+whoosh(CUE.night - 0.3, 0.5, 0.8, false);
+CUE.visits.forEach((v) => (v.ok ? checkBlip(v.t, 1.1) : thud(v.t)));
 whoosh(CUE.reslice - 0.1, 0.15, 0.7);
 tick(CUE.reslice, 1.4);
-CUE.choices.forEach((s, i) => pop(s, 1.2 - i * 0.08));
-ding(CUE.auditLine, 91);
-
-whoosh(CUE.harnessTitle - 0.3, 0.35, 0.8);
-CUE.harnesses.forEach((s, i) => pop(s, 1 + i * 0.1, 1, ((i % 3) - 1) * 0.4));
-
-CUE.proofWords.forEach((s) => { pop(s, 0.6, 1.3); ding(s, 84, 0.6); });
-whoosh(CUE.goalPill - 0.3, 0.35, 0.8);
-counterTicks.forEach((s, i) => tick(s, 0.8 + i * 0.03, 0.9));
+timerTicks.forEach((s, i) => tick(s, 0.8 + i * 0.03, 0.9));
 riser(CUE.riser2[0], CUE.riser2[1], 1.2);
-impact(CUE.slam, 1.3);
-pop(CUE.proofSub, 1);
+impact(CUE.slam, 1.4);
+subDrop(CUE.slam, 1.1);
+pop(CUE.proofSub, 0.9);
+tick(CUE.disclosure, 0.7, 0.6);
 
-impact(CUE.lockup, 0.8);
+riser(CUE.dawn - 0.6, CUE.dawn, 0.5);
+impact(CUE.dawn, 0.4);
+CUE.choiceWords.forEach((s, i) => pop(s, 0.8 + i * 0.12, 1.2));
+scratch(CUE.choiceWords[2] + 0.35);
+CUE.harness.forEach((s, i) => pop(s, 1.1 + i * 0.1, 1, ((i % 3) - 1) * 0.4));
+whoosh(CUE.collapse[0], CUE.collapse[1] - CUE.collapse[0], 1, false);
+riser(CUE.collapse[0] - 0.5, CUE.collapse[1], 0.6);
+
+impact(CUE.lockup, 0.9);
+subDrop(CUE.lockup, 0.7);
+pop(CUE.lockTag, 1);
+key(CUE.lockCmd, true);
 pop(CUE.lockCmd, 1.1);
 pop(CUE.lockUrl, 1.3);
-impact(CUE.finalHit, 0.6);
+impact(CUE.finalHit, 0.5);
 ding(CUE.finalHit, 96, 1.2);
 
 // ---------- reverb (small Schroeder) + mixdown ----------

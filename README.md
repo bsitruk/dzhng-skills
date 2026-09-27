@@ -174,7 +174,7 @@ when the research is ready for implementation.
 | Skill | What it does |
 |---|---|
 | [renderer](skills/graphics/renderer/SKILL.md) | Architecture rules for GPU rendering with TypeGPU/WebGPU — one frame orchestrator, single owners, a resource registry, depth and compositing contracts, and verification that looks at pixels. |
-| [launch-video](skills/graphics/launch-video/SKILL.md) | Produce a beat-locked, showreel-quality launch video in code — Remotion scenes and a synthesized soundtrack driven by one cue sheet, rebuilt UI instead of screenshots, and a preview frame that survives social feeds. |
+| [launch-video](skills/graphics/launch-video/SKILL.md) | Direct a showreel-grade launch video in code — one visual concept grown from the project, picture and a synthesized score locked to one timing source, and a preview frame that survives social feeds. |
 
 ## License
 

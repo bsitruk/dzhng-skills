@@ -6,6 +6,7 @@ export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const prog = (s: number, a: number, b: number) => clamp((s - a) / (b - a));
 export const outCubic = (t: number) => 1 - (1 - clamp(t)) ** 3;
 export const inCubic = (t: number) => clamp(t) ** 3;
+export const outExpo = (t: number) => (t >= 1 ? 1 : 1 - 2 ** (-10 * clamp(t)));
 export const inOutCubic = (t: number) => {
   t = clamp(t);
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -32,8 +33,9 @@ export function squash(s: number, start: number, amount = 0.22): [number, number
   return [1 + k, 1 - k];
 }
 
-const inSec = (s: number, [a, b]: readonly number[]) => s >= a && s < b;
-export const kickOn = (s: number) => inSec(s, SECTIONS.drop) || inSec(s, SECTIONS.drop2);
+const within = (s: number, [a, b]: readonly number[]) => s >= a && s < b;
+export const kickOn = (s: number) =>
+  within(s, SECTIONS.dropA) || within(s, SECTIONS.night) || within(s, SECTIONS.dropB) || within(s, SECTIONS.dropC);
 
 // 1 on each kick, decaying before the next.
 export function kick(s: number) {
@@ -42,30 +44,26 @@ export function kick(s: number) {
 }
 
 export const IMPACTS: [number, number][] = [
-  [CUE.drop, 1],
-  ...CUE.steps.map((t) => [t, 0.3] as [number, number]),
-  [CUE.verdicts[2].t, 0.5],
-  [CUE.slam, 1.3],
-  [CUE.lockup, 0.7],
-  [CUE.finalHit, 0.4],
+  [CUE.drop, 1.2],
+  [CUE.visits[2].t, 0.6],
+  [CUE.slam, 1.4],
+  [CUE.dawn, 0.5],
+  [CUE.lockup, 0.8],
 ];
 
-// Camera shake summed over recent impacts.
+// Screen shake summed over recent impacts, in px.
 export function shake(s: number) {
   let x = 0, y = 0, r = 0;
   for (const [t, a] of IMPACTS) {
     const d = s - t;
-    if (d < 0 || d > 0.6) continue;
-    const e = a * Math.exp(-d / 0.12);
-    x += Math.sin(d * 91 + t) * 22 * e;
-    y += Math.cos(d * 77 + t * 3) * 16 * e;
-    r += Math.sin(d * 53 + t) * 0.6 * e;
+    if (d < 0 || d > 0.7) continue;
+    const e = a * Math.exp(-d / 0.13);
+    x += Math.sin(d * 91 + t) * 24 * e;
+    y += Math.cos(d * 77 + t * 3) * 18 * e;
+    r += Math.sin(d * 53 + t) * 0.7 * e;
   }
   return { x, y, r };
 }
 
-// Mask-reveal state for one kinetic word landing at `start`.
-export function wordIn(s: number, start: number) {
-  const p = spring(s, start, 2.6, 0.45);
-  return { y: (1 - p) * 110, opacity: clamp((s - start) / 0.06) };
-}
+// Day ↔ night: dusk at the build, dawn at the choices.
+export const night = (s: number) => inOutCubic(prog(s, CUE.night - 0.25, CUE.night + 0.75)) * (1 - inOutCubic(prog(s, CUE.dawn - 0.1, CUE.dawn + 0.3)));
