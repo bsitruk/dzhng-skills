@@ -20,6 +20,10 @@ The stack is **TypeGPU on WebGPU**: typed schemas, bind group layouts and pipeli
 - **One owner per concept:** device and capabilities, camera and projection, the depth convention, frame targets, the resource registry, the time source. A second copy (a private projection, or a struct hand-mirrored in WGSL) is a bug waiting to happen. Refactor to the shared owner.
 - **Tunable numbers live in data** (config or fixtures), validated where they're loaded. Don't scatter them as constants in passes.
 - **Update each resource at its own frequency:** every frame, on view change, on data change (upload deltas only), or once. Allocate nothing per frame on hot paths.
+- **Do CPU-side math with the pmndrs [`math`](https://github.com/pmndrs/math) package** (npm `math`, whose `API.md` lists every export): vectors, matrices, quaternions, frustum and shape culling, noise, seeded randomness.
+  - Its functions take the output as their first argument and return it, so preallocated scratch keeps hot paths allocation-free.
+  - Pack its results into preallocated `Float32Array`s for upload.
+  - Don't hand-roll a second vector or matrix library.
 - **Picking and hit tests use the app's own shapes** and the same camera function the GPU packing uses, never a readback of drawn pixels.
 
 ## Resources
