@@ -105,19 +105,19 @@ const HEADERS = [
     ...STEP_TAGS[0],
     count: (s: number) => REVEALS.filter((t) => t > s).length,
     ticks: REVEALS,
-    render: (n: React.ReactNode) => <>{n} unknowns left</>,
+    render: (n: React.ReactNode) => <>Survey the land <span style={{ color: "#aeb8dc", fontWeight: 700 }}>· {n} unknowns left</span></>,
   },
   {
     ...STEP_TAGS[1],
     count: (s: number) => SLICE_COUNTS[CUE.lasers.filter((t) => t <= s).length - 1] ?? 0,
     ticks: [...CUE.lasers],
-    render: (n: React.ReactNode) => <>{n} verifiable slices</>,
+    render: (n: React.ReactNode) => <>Zone the plots <span style={{ color: "#aeb8dc", fontWeight: 700 }}>· {n} plots zoned</span></>,
   },
   {
     ...STEP_TAGS[2],
     count: (s: number) => PASSES.filter((t) => t <= s).length,
     ticks: PASSES,
-    render: (n: React.ReactNode) => <>{n}/{LANDS.length} slices verified</>,
+    render: (n: React.ReactNode) => <>Build &amp; inspect <span style={{ color: "#aeb8dc", fontWeight: 700 }}>· {n}/{LANDS.length} passed</span></>,
   },
 ];
 export const StepHeaders: React.FC<S> = ({ s }) => (
@@ -129,7 +129,7 @@ export const StepHeaders: React.FC<S> = ({ s }) => (
       const bump = s - last < 0.3 ? Math.exp(-(s - last) / 0.08) : 0;
       const out = inCubic(prog(s, h.until - 0.2, h.until));
       return (
-        <div key={h.cmd} style={{ position: "absolute", left: 80, top: 70, fontFamily: SANS, fontWeight: 900, fontSize: 92, letterSpacing: -3, color: C.fg, textShadow: "0 4px 24px rgba(4,6,16,0.95), 0 0 60px rgba(4,6,16,0.8)", opacity: 1 - out, transform: `translateY(${out * -40}px)`, whiteSpace: "nowrap" }}>
+        <div key={h.cmd} style={{ position: "absolute", left: 80, top: 70, fontFamily: SANS, fontWeight: 900, fontSize: 76, letterSpacing: -2.5, color: C.fg, textShadow: "0 4px 24px rgba(4,6,16,0.95), 0 0 60px rgba(4,6,16,0.8)", opacity: 1 - out, transform: `translateY(${out * -40}px)`, whiteSpace: "nowrap" }}>
           <Word s={s} at={h.at + 0.05}>
             {h.render(<span style={{ display: "inline-block", color: C.periwinkle, minWidth: "1.2ch", textAlign: "right", fontVariantNumeric: "tabular-nums", transform: `scale(${1 + bump * 0.25})` }}>{n}</span>)}
           </Word>

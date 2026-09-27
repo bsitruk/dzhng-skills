@@ -19,7 +19,13 @@ piece could be re-skinned for any other project, it has failed.
    any claim the repo cannot back instead of inventing its meaning.
 2. **Direct before you build.** Choose one visual concept grown from what the
    project *is* (its metaphors, its brand art, its mechanism): a world with its
-   own look, camera, and signature move, rather than a sequence of panels. Write
+   own look, camera, and signature move, rather than a sequence of panels.
+   Then commit to one familiar real-world analogy for the mechanism (building
+   a city, running a kitchen, a heist) and map every step onto it: name each
+   step in the analogy's vocabulary, and give each one the everyday props that
+   explain it at a glance (a surveyor's tripod, stakes, cranes, an inspection
+   stamp). Digestible beats clever: a viewer should get each step from
+   references they already know, without reading a word. Write
    it as a shot list on a music timeline. Done when every shot names its camera
    move and the one moment in it a motion designer would be proud of. A shot
    whose description is "a card/panel/list appears" gets redesigned.

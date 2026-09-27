@@ -236,3 +236,14 @@ export const terrainTex = () => {
   return tex;
 };
 
+
+// Survey stake: red-and-white banding.
+export const stakeTex = () => {
+  const tex = make("stake", 16, 128, (g) => {
+    for (let i = 0; i < 8; i++) {
+      g.fillStyle = i % 2 ? "#ffffff" : "#e5484d";
+      g.fillRect(0, i * 16, 16, 16);
+    }
+  });
+  return tex;
+};

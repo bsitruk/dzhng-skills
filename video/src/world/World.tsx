@@ -14,7 +14,7 @@ import { getInputProps } from "remotion";
 import { clamp, inCubic, inOutCubic, kick, lerp, night, outBack, outCubic, outExpo, prog, spring } from "../anim.ts";
 import { cameraAt } from "./camera.ts";
 import { BORDERS, BUILDINGS, HEXES, LANDS, PROPS, RAIN_TARGETS, RESLICE_LAND, revealAt, type Hex } from "./grid.ts";
-import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, puffTex, questionTex, ringTex, skillTileTex, stampTex, terrainTex, wordTex } from "./textures.ts";
+import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, puffTex, questionTex, ringTex, skillTileTex, stakeTex, stampTex, terrainTex, wordTex } from "./textures.ts";
 
 export const LOCKUP_BG = "#080a12";
 // Sky: the hero art's periwinkle gradient by day, navy by night.
@@ -155,6 +155,8 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
       <Rain s={s} />
       <Sonar s={s} />
       <Terrain s={s} />
+      <SurveyTripod s={s} />
+      <Cranes s={s} />
       <BorderTraces s={s} />
       <ResliceLaser s={s} />
       <Flags s={s} />
@@ -417,11 +419,11 @@ const Flags: React.FC<{ s: number }> = ({ s }) => (
         <group key={land} position={[x + 0.55, y, z + 0.3]} scale={[p, p, p]}>
           <mesh position={[0, 0.75, 0]} castShadow>
             <cylinderGeometry args={[0.035, 0.035, 1.5, 8]} />
-            <meshStandardMaterial color="#ffffff" />
+            <meshStandardMaterial color="#ffffff" map={stakeTex()} />
           </mesh>
           <mesh position={[0.32, 1.3, 0]} rotation={[0, wave, 0]} castShadow>
             <planeGeometry args={[0.64, 0.4]} />
-            <meshStandardMaterial color={C.blue} side={THREE.DoubleSide} emissive={C.blue} emissiveIntensity={0.25} />
+            <meshStandardMaterial color="#ff7a1a" side={THREE.DoubleSide} emissive="#ff7a1a" emissiveIntensity={0.35} />
           </mesh>
         </group>
       );
@@ -794,3 +796,95 @@ const Terrain: React.FC<{ s: number }> = ({ s }) => {
     </>
   );
 };
+
+// ---------- construction references ----------
+const YELLOW = new THREE.MeshPhysicalMaterial({ color: "#f5b82e", roughness: 0.45, metalness: 0.3, clearcoat: 0.5 });
+const STEEL = new THREE.MeshStandardMaterial({ color: "#3a4054", roughness: 0.5, metalness: 0.6 });
+const BEACON = new THREE.MeshBasicMaterial({ color: new THREE.Color(6, 0.6, 0.5), toneMapped: false });
+
+// A surveyor's total station on a tripod at the heart of the map; it emits the sweeps.
+const SurveyTripod: React.FC<{ s: number }> = ({ s }) => {
+  if (s < CUE.explore - 0.1 || s > CUE.slice + 0.3) return null;
+  const p = spring(s, CUE.explore, 2.4, 0.4);
+  const out = inCubic(prog(s, CUE.slice - 0.1, CUE.slice + 0.3));
+  const k = clamp(p) * (1 - out);
+  const spin = s * 1.6;
+  const pulse = CUE.pulses.reduce((a, t) => a + (s >= t ? Math.exp(-(s - t) / 0.15) : 0), 0);
+  const top = hexHeight(HEXES[0], s) + 0.02;
+  return (
+    <group position={[0, top, 0]} scale={[k * 2.8, k * 2.8, k * 2.8]}>
+      {[0, 1, 2].map((i) => {
+        const a = (i / 3) * Math.PI * 2;
+        return (
+          <mesh key={i} material={STEEL} position={[Math.cos(a) * 0.18, 0.3, Math.sin(a) * 0.18]} rotation={[Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35]} castShadow>
+            <cylinderGeometry args={[0.02, 0.025, 0.66, 6]} />
+          </mesh>
+        );
+      })}
+      <group position={[0, 0.66, 0]} rotation={[0, spin, 0]}>
+        <mesh material={YELLOW} castShadow>
+          <boxGeometry args={[0.2, 0.16, 0.14]} />
+        </mesh>
+        <mesh material={STEEL} position={[0.14, 0.03, 0]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.035, 0.045, 0.14, 12]} />
+        </mesh>
+        <mesh position={[3, 0.03, 0]}>
+          <boxGeometry args={[6, 0.012, 0.012]} />
+          <meshBasicMaterial color={new THREE.Color(1.5, 2, 6)} transparent opacity={0.35 + pulse * 0.6} toneMapped={false} />
+        </mesh>
+      </group>
+      <sprite position={[0, 0.7, 0]} scale={[0.6 + pulse, 0.6 + pulse, 1]}>
+        <spriteMaterial map={glowTex()} color={new THREE.Color(C.blue).multiplyScalar(3)} transparent opacity={0.5 + pulse * 0.5} blending={ADD} depthWrite={false} />
+      </sprite>
+    </group>
+  );
+};
+
+// Tower cranes go up on each plot while it's being built, and come down once it passes.
+const Cranes: React.FC<{ s: number }> = ({ s }) => (
+  <>
+    {LANDS.map((L, land) => {
+      const first = CUE.visits.find((v) => v.land === land)!.t;
+      const pass = passTime(land);
+      const up = spring(s, first - 0.45, 2.2, 0.45);
+      const down = inCubic(prog(s, pass + 0.5, pass + 0.9));
+      const k = clamp(up) * (1 - down);
+      if (k <= 0.001) return null;
+      const [x, z] = landPos(land, s);
+      const top = landTop(land, s);
+      const outward = Math.atan2(L.dir[1] || 1, L.dir[0] || 0.3);
+      const jib = s * 0.9 + land;
+      const H = 3.2;
+      const blink = Math.floor(s * 3 + land) % 2 ? 1 : 0.15;
+      return (
+        <group key={land} position={[x - Math.cos(outward) * 1.1, top, z - Math.sin(outward) * 1.1]} scale={[1, k, 1]}>
+          <mesh material={YELLOW} position={[0, H / 2, 0]} castShadow>
+            <boxGeometry args={[0.14, H, 0.14]} />
+          </mesh>
+          {Array.from({ length: 8 }, (_, i) => (
+            <mesh key={i} material={YELLOW} position={[0, 0.2 + i * 0.38, 0]} rotation={[0, 0, i % 2 ? 0.7 : -0.7]}>
+              <boxGeometry args={[0.03, 0.2, 0.16]} />
+            </mesh>
+          ))}
+          <group position={[0, H, 0]} rotation={[0, jib, 0]}>
+            <mesh material={YELLOW} position={[0.7, 0, 0]} castShadow>
+              <boxGeometry args={[2.2, 0.1, 0.1]} />
+            </mesh>
+            <mesh material={STEEL} position={[-0.55, -0.12, 0]}>
+              <boxGeometry args={[0.3, 0.22, 0.22]} />
+            </mesh>
+            <mesh material={STEEL} position={[1.4, -0.6, 0]}>
+              <boxGeometry args={[0.012, 1.1, 0.012]} />
+            </mesh>
+            <mesh material={YELLOW} position={[1.4, -1.18, 0]}>
+              <boxGeometry args={[0.12, 0.08, 0.12]} />
+            </mesh>
+            <mesh material={BEACON} position={[0, 0.12, 0]} scale={[blink, blink, blink]}>
+              <sphereGeometry args={[0.05, 8, 8]} />
+            </mesh>
+          </group>
+        </group>
+      );
+    })}
+  </>
+);
