@@ -48,7 +48,7 @@ export const Post: React.FC<{ s: number; n: number }> = ({ s, n }) => {
   const low = Math.exp(-Math.max(0, pos[1] - 4) / 5);
   fx.ao.configuration.intensity = lerp(2.6, 1.6, n) * (1 - lockup);
   fx.dof.target = new THREE.Vector3(look[0], look[1], look[2]);
-  fx.dof.bokehScale = lerp(0, 2.5, low) * (1 - prog(s, CUE.dawn - 0.3, CUE.dawn));
+  fx.dof.bokehScale = lerp(0, 2.5, low) * prog(s, CUE.drop, CUE.drop + 0.1) * (1 - prog(s, CUE.dawn - 0.3, CUE.dawn));
   fx.bloom.intensity = lerp(0.5, 0.9, n) + hit * 0.8 + kick(s) * 0.12 * n;
   fx.bloom.luminanceMaterial.threshold = lerp(0.92, 0.8, n);
   const ca = 0.0005 + hit * 0.004 + kick(s) * 0.0004;

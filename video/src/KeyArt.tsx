@@ -22,7 +22,6 @@ export const KeyArt: React.FC = () => {
         <div>The middle</div>
         <div style={{ color: C.periwinkle }}>runs itself.</div>
       </div>
-      <div style={{ position: "absolute", left: 0, right: 0, top: 720, textAlign: "center", fontFamily: SANS, fontWeight: 800, fontSize: 60, color: "#fff" }}>Your time is in the bookends.</div>
       <div style={{ position: "absolute", left: 90, bottom: 80, fontFamily: SANS, fontWeight: 900, fontSize: 96, letterSpacing: -4, color: "#fff" }}>skills<span style={{ color: C.blue }}>.</span></div>
       <div style={{ position: "absolute", right: 90, bottom: 96, fontFamily: MONO, fontSize: 34, color: "#c9d4ff" }}>npx skills add dzhng/skills</div>
     </AbsoluteFill>

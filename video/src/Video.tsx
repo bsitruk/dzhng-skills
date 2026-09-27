@@ -4,7 +4,7 @@ import { CUE, FPS, PREROLL } from "./cues.ts";
 import { C, H, W, fontsReady } from "./theme.ts";
 import { clamp, inCubic, inOutCubic, lerp, night, prog, shake } from "./anim.ts";
 import { LOCKUP_BG, World } from "./world/World.tsx";
-import { Captions, Choices, CommandTags, DOT, Install, Lockup, Proof } from "./overlay/Type.tsx";
+import { Choices, CommandTags, DOT, Install, Lockup, Proof } from "./overlay/Type.tsx";
 
 // Song time s = video time − PREROLL. The pre-roll holds the finished install
 // over the aerial world as the feed thumbnail, then blows into the fog.
@@ -36,7 +36,7 @@ export const LaunchVideo: React.FC = () => {
   const white = s < CUE.drop ? prog(s, 3.8, 3.98) : 1 - prog(s, CUE.drop, CUE.drop + 0.2);
   const flashes = [[CUE.slam, 0.12], [CUE.dawn, 0.5], [CUE.lockup, 0.3]].reduce((a, [t, g]) => a + (s >= t ? g * Math.exp(-(s - t) / 0.07) : 0), 0);
   return (
-    <AbsoluteFill style={{ overflow: "hidden", background: "linear-gradient(155deg, #f4f7ff 0%, #dde5fc 45%, #95abf3 100%)" }}>
+    <AbsoluteFill style={{ overflow: "hidden", background: "radial-gradient(ellipse at 50% 30%, #161c30 0%, #0b0e19 55%, #04050a 100%)" }}>
       <AbsoluteFill style={{ background: LOCKUP_BG, opacity: flatBg }} />
       <AbsoluteFill style={{ transform: `translate(${x}px, ${y}px) rotate(${r}deg) scale(1.03)` }}>
         {s < CUE.collapse[1] && (
@@ -57,7 +57,6 @@ export const LaunchVideo: React.FC = () => {
           <>
             <Install s={s} />
             <CommandTags s={s} />
-            <Captions s={s} />
             <Proof s={s} />
             <Choices s={s} />
             <Lockup s={s} />

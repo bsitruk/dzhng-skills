@@ -9,17 +9,18 @@ import { Post } from "./Post.tsx";
 import { ThreeCanvas } from "@remotion/three";
 import { random } from "remotion";
 import { CUE, SKILLS } from "../cues.ts";
-import { C, H, W } from "../theme.ts";
+import { C, H, SKIES, W, type SkyName } from "../theme.ts";
+import { getInputProps } from "remotion";
 import { clamp, inCubic, inOutCubic, kick, lerp, night, outBack, outCubic, outExpo, prog, spring } from "../anim.ts";
 import { cameraAt } from "./camera.ts";
-import { BUILDINGS, HEXES, LANDS, RAIN_TARGETS, RESLICE_LAND, type Hex } from "./grid.ts";
-import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, groundTextTex, puffTex, questionTex, ringTex, skillTileTex, stampTex, terrainTex, wordTex } from "./textures.ts";
+import { BORDERS, BUILDINGS, HEXES, LANDS, PROPS, RAIN_TARGETS, RESLICE_LAND, revealAt, type Hex } from "./grid.ts";
+import { beamTex, docTex, facadeDayTex, facadeTex, glowTex, puffTex, questionTex, ringTex, skillTileTex, stampTex, terrainTex, wordTex } from "./textures.ts";
 
-export const LOCKUP_BG = "#e3e9fc";
+export const LOCKUP_BG = "#080a12";
 // Sky: the hero art's periwinkle gradient by day, navy by night.
 let skyCanvas: HTMLCanvasElement | null = null;
 let skyTex: THREE.CanvasTexture | null = null;
-function skyTexture(n: number, flat: number) {
+function skyTexture(n: number, flat: number, sky: SkyName) {
   if (!skyCanvas) {
     skyCanvas = document.createElement("canvas");
     skyCanvas.width = 160;
@@ -29,9 +30,10 @@ function skyTexture(n: number, flat: number) {
   }
   const g = skyCanvas.getContext("2d")!;
   const day = g.createLinearGradient(0, 0, 160, 90);
-  day.addColorStop(0, "#f4f7ff");
-  day.addColorStop(0.45, "#dde5fc");
-  day.addColorStop(1, "#95abf3");
+  const [a, b, c] = SKIES[sky].stops;
+  day.addColorStop(0, a);
+  day.addColorStop(0.45, b);
+  day.addColorStop(1, c);
   g.globalAlpha = 1;
   g.fillStyle = day;
   g.fillRect(0, 0, 160, 90);
@@ -67,13 +69,16 @@ function hexHeight(h: { land: number; rnd: number }, s: number) {
   const start = CUE.rise + h.land * 0.06 + h.rnd * 0.12;
   return 0.35 + h.rnd * 0.05 + spring(s, start, 2.2, 0.35) * (LAND_H[h.land] + h.rnd * 0.25);
 }
-function landGap(s: number) {
-  const cuts = CUE.lasers.reduce((a, t) => a + outBack(prog(s, t + 0.2, t + 0.45)), 0);
-  return cuts * 0.07 + spring(s, CUE.rise, 2, 0.5) * 0.22;
+// Slicing groups existing tiles: on each cut, these territories trace their
+// borders, lift, take their color and pull apart from their neighbors.
+const GROUPS = [[1, 4], [2, 5], [3, 6], [0]];
+const groupAt = (land: number) => CUE.lasers[GROUPS.findIndex((g) => g.includes(land))];
+function landGap(land: number, s: number) {
+  return outBack(prog(s, groupAt(land) + 0.1, groupAt(land) + 0.4)) * 0.18 + spring(s, CUE.rise, 2, 0.5) * 0.16;
 }
 function hexOffset(h: Hex, s: number): [number, number] {
   const L = LANDS[h.land];
-  const g = landGap(s);
+  const g = landGap(h.land, s);
   let ox = L.dir[0] * g, oz = L.dir[1] * g;
   if (h.land === RESLICE_LAND) {
     const sep = outBack(prog(s, CUE.reslice, CUE.reslice + 0.3)) * 0.4 * h.half;
@@ -85,6 +90,8 @@ function hexOffset(h: Hex, s: number): [number, number] {
 function hexLift(h: Hex, s: number) {
   let y = ripple(s, CUE.drop, h.dist, 1.4, 13) + ripple(s, CUE.slam, h.dist, 0.9, 15);
   for (const p of CUE.pulses) y += ripple(s, p, h.dist, 0.2, 11);
+  const g = groupAt(h.land);
+  y += Math.sin(Math.PI * prog(s, g, g + 0.4)) * 0.45;
   const k = RAIN_TARGETS.indexOf(h.i);
   if (k >= 0) {
     const t = s - CUE.rain[k];
@@ -95,7 +102,7 @@ function hexLift(h: Hex, s: number) {
 const landTop = (land: number, s: number) => hexHeight({ land, rnd: 0.5 }, s);
 const landPos = (land: number, s: number): [number, number] => {
   const L = LANDS[land];
-  const g = landGap(s);
+  const g = landGap(land, s);
   return [L.cx + L.dir[0] * g, L.cz + L.dir[1] * g];
 };
 const passTime = (land: number) => CUE.visits.filter((v) => v.land === land && v.ok).at(-1)!.t;
@@ -121,8 +128,9 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
   cam.updateProjectionMatrix();
 
   const fog = useMemo(() => new THREE.Fog(C.sky, 10, 80), []);
-  scene.background = skyTexture(n, prog(s, CUE.collapse[0] - 0.3, CUE.collapse[0]));
-  fog.color.copy(col("#d2dbf8", C.nightFog, n));
+  const sky = ((getInputProps() as { sky?: SkyName }).sky ?? "space") as SkyName;
+  scene.background = skyTexture(n, prog(s, CUE.collapse[0] - 0.3, CUE.collapse[0]), sky);
+  fog.color.copy(col(SKIES[sky].fog, C.nightFog, n));
   const intro = s < CUE.drop;
   fog.near = intro ? lerp(6, 1, prog(s, 3.0, 4)) : lerp(40, 22, n);
   fog.far = intro ? lerp(46, 9, prog(s, 3.0, 4)) : lerp(120, 80, n);
@@ -141,14 +149,13 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
       <directionalLight position={sun} intensity={lerp(1.9, 0.55, n) + (lapse > 0 && lapse < 1 ? Math.max(0, Math.sin(az)) * 1.2 : 0)} color={col("#fff4e6", "#9fb4ff", n)} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-16} shadow-camera-right={16} shadow-camera-top={16} shadow-camera-bottom={-16} shadow-bias={-0.0006} shadow-radius={6} shadow-blurSamples={16} />
       <Hexes s={s} n={n} />
       <IntroWords s={s} />
-      <Titles s={s} n={n} />
       <WallFog s={s} />
       <GroundFog s={s} n={n} />
       <Questions s={s} />
       <Rain s={s} />
       <Sonar s={s} />
-      <GroundText s={s} />
-      <Lasers s={s} />
+      <Terrain s={s} />
+      <BorderTraces s={s} />
       <ResliceLaser s={s} />
       <Flags s={s} />
       <Buildings s={s} n={n} />
@@ -158,6 +165,7 @@ const Scene: React.FC<{ s: number }> = ({ s }) => {
       <DocCard s={s} />
       <ShockRing s={s} at={CUE.drop} color="#ffffff" speed={18} />
       <ShockRing s={s} at={CUE.slam} color={C.periwinkle} speed={20} />
+      <Stars s={s} />
       <Dust s={s} n={n} />
       <Sparks s={s} />
       <Post s={s} n={n} />
@@ -203,14 +211,20 @@ const Hexes: React.FC<{ s: number; n: number }> = ({ s, n }) => {
         const height = hexHeight(h, s);
         const lift = hexLift(h, s);
         const [ox, oz] = hexOffset(h, s);
-        const cp = clamp(spring(s, CUE.color + h.dist * 0.035, 2.5, 0.5));
+        const L = LANDS[h.land];
+        const cp = clamp(spring(s, groupAt(h.land) + 0.05 + Math.hypot(h.x - L.cx, h.z - L.cz) * 0.04, 2.5, 0.5));
+        const mapped = outCubic(prog(s, CUE.pulses[h.quad] + h.dist / 11, CUE.pulses[h.quad] + h.dist / 11 + 0.3));
+        const base = s < CUE.drop ? "#7f8bb3" : mapped > 0 ? col("#cdd3e8", "#7c87b0", mapped).getStyle() : "#cdd3e8";
         const m = mats[i];
-        m.color.copy(col(s < CUE.drop ? "#7f8bb3" : C.land, C.lands[h.land], cp));
+        m.color.copy(col(base, C.lands[h.land], cp));
+        const ping = CUE.pulses.reduce((a, p) => a + ripple(s, p, h.dist, 1, 11), 0);
         const visited = CUE.visits.filter((v) => v.land === h.land && s >= v.t).at(-1);
         const visitGlow = visited ? Math.exp(-(s - visited.t) / 0.3) : 0;
         const slamGlow = s >= CUE.slam ? Math.exp(-(s - CUE.slam - h.dist * 0.04) / 0.4) * (s - CUE.slam > h.dist * 0.04 ? 1 : 0) : 0;
         m.emissive.copy(col(C.lands[h.land], visited && !visited.ok && s < CUE.reslice ? C.red : C.lands[h.land], 1));
-        m.emissiveIntensity = cp * (n * 0.22 + k * 0.08) + visitGlow * 0.9 + slamGlow * 1.2;
+        const groupGlow = Math.exp(-Math.max(0, s - groupAt(h.land)) / 0.25) * (s >= groupAt(h.land) ? 1 : 0);
+        if (cp < 0.5 && ping > 0.02) m.emissive.set(C.blue);
+        m.emissiveIntensity = cp * (n * 0.22 + k * 0.08) + visitGlow * 0.9 + slamGlow * 1.2 + groupGlow * 0.8 + (cp < 0.5 ? ping * 0.7 : 0);
         return (
           <mesh key={i} geometry={HEX_GEO} material={m} position={[h.x + ox, height / 2 + lift, h.z + oz]} scale={[1, height, 1]} castShadow receiveShadow />
         );
@@ -242,7 +256,7 @@ const WallFog: React.FC<{ s: number }> = ({ s }) => {
         const o = (0.05 + thick * 0.75) * (1 - blast);
         return (
           <sprite key={i} position={[x, y, z]} scale={[p.size, p.size, 1]}>
-            <spriteMaterial map={puffTex()} transparent opacity={o} depthWrite={false} color={i % 3 ? "#ffffff" : "#e3e9fb"} fog={false} />
+            <spriteMaterial map={puffTex()} transparent opacity={o} depthWrite={false} color={i % 3 ? "#454e74" : "#343b5c"} fog={false} />
           </sprite>
         );
       })}
@@ -267,7 +281,7 @@ const GroundFog: React.FC<{ s: number; n: number }> = ({ s }) => {
         const o = (s < CUE.drop ? 0.1 + prog(s, 2.8, 4) * 0.3 : 0.5) * (1 - c);
         return (
           <sprite key={i} position={[x + Math.sin(s * 0.6 + i) * 0.2, p.y + c * 2.5, z]} scale={[p.size, p.size, 1]}>
-            <spriteMaterial map={puffTex()} transparent opacity={o} depthWrite={false} depthTest={false} color="#f4f7ff" />
+            <spriteMaterial map={puffTex()} transparent opacity={o} depthWrite={false} depthTest={false} color="#3b4468" />
           </sprite>
         );
       })}
@@ -277,12 +291,8 @@ const GroundFog: React.FC<{ s: number; n: number }> = ({ s }) => {
 
 // "?" glints: in the fog on the way in, then over each unmapped quadrant.
 const Q_INTRO = CUE.glints.map((t, i) => ({ t, x: (random(`qx${i}`) - 0.5) * 8, y: 1.4 + random(`qy${i}`) * 2, z: -5 + random(`qz${i}`) * 8 }));
-const Q_MAP = Array.from({ length: 8 }, (_, i) => {
-  const quad = i % 4;
-  const a = -Math.PI + (quad + 0.3 + random(`qa${i}`) * 0.4) * (Math.PI / 2);
-  const r = 3 + random(`qr${i}`) * 5;
-  return { quad, x: Math.cos(a) * r, z: Math.sin(a) * r, t: CUE.drop + 0.8 + i * 0.12 };
-});
+// One "?" hovers over every hidden feature until the sonar uncovers it.
+const Q_MAP = PROPS.map((p, i) => ({ h: HEXES[p.hex], t: CUE.drop + 0.8 + i * 0.03 }));
 const Questions: React.FC<{ s: number }> = ({ s }) => (
   <>
     {s < CUE.drop &&
@@ -298,12 +308,16 @@ const Questions: React.FC<{ s: number }> = ({ s }) => (
     {s >= CUE.drop &&
       s < CUE.slice &&
       Q_MAP.map((q, i) => {
+        const at = revealAt(q.h, CUE.pulses);
         const pin = spring(s, q.t, 3, 0.35);
-        const out = prog(s, CUE.pulses[q.quad], CUE.pulses[q.quad] + 0.2);
-        const sc = 1.6 * pin * (1 - out) + out * 3 * (1 - out);
+        const flip = prog(s, at - 0.05, at + 0.15);
+        if (flip >= 1) return null;
+        // The mark spins edge-on and pops as its answer surfaces below.
+        const sx = 1.1 * pin * Math.cos(flip * Math.PI * 0.5) * (1 + flip);
+        const sy = 1.1 * pin * (1 + flip * 0.6);
         return (
-          <sprite key={`m${i}`} position={[q.x, 2.4 + Math.sin(s * 2 + i) * 0.15, q.z]} scale={[sc, sc, 1]}>
-            <spriteMaterial map={questionTex()} transparent opacity={clamp(pin) * (1 - out)} depthWrite={false} />
+          <sprite key={`m${i}`} position={[q.h.x, 2.0 + Math.sin(s * 2 + i) * 0.12 + flip * 0.6, q.h.z]} scale={[sx, sy, 1]}>
+            <spriteMaterial map={questionTex()} transparent opacity={clamp(pin) * (1 - flip)} depthWrite={false} />
           </sprite>
         );
       })}
@@ -361,89 +375,13 @@ const Sonar: React.FC<{ s: number }> = ({ s }) => (
       return (
         <mesh key={i} position={[0, 0.95, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[r * 2.4, r * 2.4, 1]}>
           <planeGeometry args={[1, 1]} />
-          <meshBasicMaterial map={ringTex()} transparent opacity={(1 - t / 1.3) * 0.95} color={new THREE.Color(C.blue).multiplyScalar(3)} blending={ADD} depthWrite={false} />
+          <meshBasicMaterial map={ringTex()} transparent opacity={(1 - t / 1.3) * 0.95} color={new THREE.Color(C.blue).multiplyScalar(1.6)} blending={ADD} depthWrite={false} />
         </mesh>
       );
     })}
   </>
 );
 
-const QUAD_LABELS = ["known knowns", "known unknowns", "unknown knowns", "unknown unknowns"];
-// Pulses clear quadrants in this order; each label lies on its quadrant.
-const GroundText: React.FC<{ s: number }> = ({ s }) => {
-  if (s < CUE.pulses[0] || s > CUE.slice + 0.3) return null;
-  return (
-    <>
-      {QUAD_LABELS.map((label, quad) => {
-        const at = CUE.pulses[quad] + 0.12;
-        const p = spring(s, at, 2.2, 0.5);
-        if (p <= 0) return null;
-        const out = prog(s, CUE.slice - 0.2, CUE.slice + 0.2);
-        const a = -Math.PI + (quad + 0.5) * (Math.PI / 2);
-        const r = quad === 3 ? 5.2 : 5.6;
-        const { pos } = cameraAt(at + 0.6);
-        const theta = Math.atan2(pos[0], pos[2]);
-        const slide = (1 - p) * 3;
-        return (
-          <group key={label} position={[Math.cos(a) * r, 1.05, Math.sin(a) * r]} rotation={[0, theta, 0]}>
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-slide, 0, 0]}>
-              <planeGeometry args={[7.2, 0.9]} />
-              <meshBasicMaterial map={groundTextTex(label)} color={C.ink} transparent opacity={clamp(p * 2) * (1 - out)} depthWrite={false} />
-            </mesh>
-          </group>
-        );
-      })}
-    </>
-  );
-};
-
-// ---------- slicing ----------
-const Lasers: React.FC<{ s: number }> = ({ s }) => (
-  <>
-    {CUE.lasers.map((t, i) => {
-      const p = inOutCubic(prog(s, t - 0.12, t + 0.2));
-      const fade = 1 - prog(s, t + 0.2, t + 0.7);
-      if (s < t - 0.12 || fade <= 0) return null;
-      if (i === 3) {
-        return (
-          <group key={i} position={[0, 1.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <mesh>
-              <torusGeometry args={[2.75, 0.045, 8, 96, Math.max(0.01, p * Math.PI * 2)]} />
-              <meshBasicMaterial color={new THREE.Color(5, 5, 5)} transparent opacity={fade} />
-            </mesh>
-            <mesh>
-              <torusGeometry args={[2.75, 0.22, 8, 96, Math.max(0.01, p * Math.PI * 2)]} />
-              <meshBasicMaterial color={C.blue} transparent opacity={fade * 0.5} blending={ADD} depthWrite={false} />
-            </mesh>
-          </group>
-        );
-      }
-      const a = (i * 60 * Math.PI) / 180;
-      const len = 24 * p;
-      const mid = -12 + len / 2;
-      const tip = -12 + len;
-      return (
-        <group key={i} rotation={[0, -a, 0]} position={[0, 1.1, 0]}>
-          <mesh position={[mid, 0, 0]}>
-            <boxGeometry args={[Math.max(0.01, len), 0.06, 0.06]} />
-            <meshBasicMaterial color={new THREE.Color(5, 5, 5)} transparent opacity={fade} />
-          </mesh>
-          <mesh position={[mid, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[Math.max(0.01, len), 0.6]} />
-            <meshBasicMaterial color={C.blue} transparent opacity={fade * 0.55} blending={ADD} depthWrite={false} />
-          </mesh>
-          {p < 1 && (
-            <sprite position={[tip, 0, 0]} scale={[1.6, 1.6, 1]}>
-              <spriteMaterial map={glowTex()} color="#ffffff" blending={ADD} transparent depthWrite={false} />
-            </sprite>
-          )}
-        </group>
-      );
-    })}
-  </>
-);
-
-// The stale territory gets cut in two along its own axis.
 const ResliceLaser: React.FC<{ s: number }> = ({ s }) => {
   const t = CUE.reslice;
   const p = inOutCubic(prog(s, t - 0.15, t + 0.05));
@@ -654,7 +592,7 @@ const IntroWords: React.FC<{ s: number }> = ({ s }) => {
           <group key={w.text} position={[0, lerp(-0.5, 0.35, clamp(p)) + (w.w * 0.1875) / 2 - leave * 1.5 + (last ? dissolve * 0.8 : 0), w.z]}>
             <mesh renderOrder={20} rotation={[-Math.PI / 2 + stand * (Math.PI / 2 - 0.2), 0, 0]} scale={[1 + (last ? dissolve * 0.4 : 0), 1 + (last ? dissolve * 0.4 : 0), 1]}>
               <planeGeometry args={[w.w, w.w * 0.1875]} />
-              <meshBasicMaterial map={wordTex(w.text)} color={C.ink} transparent opacity={clamp(p * 2) * (1 - dissolve)} depthWrite={false} depthTest={false} fog={false} />
+              <meshBasicMaterial map={wordTex(w.text)} color={C.fg} transparent opacity={clamp(p * 2) * (1 - dissolve)} depthWrite={false} depthTest={false} fog={false} />
             </mesh>
           </group>
         );
@@ -663,34 +601,6 @@ const IntroWords: React.FC<{ s: number }> = ({ s }) => {
   );
 };
 
-// Step titles projected onto the board as each shot begins.
-const TITLES = [
-  { text: "map the fog", at: CUE.explore, until: CUE.pulses[0] + 0.3 },
-  { text: "slice it", at: CUE.slice, until: CUE.lasers[0] + 0.25 },
-  { text: "build", at: CUE.night, until: CUE.visits[0].t - 0.1 },
-];
-const Titles: React.FC<{ s: number; n: number }> = ({ s, n }) => (
-  <>
-    {TITLES.map((t) => {
-      if (s < t.at - 0.05 || s > t.until + 0.3) return null;
-      const p = spring(s, t.at, 2.4, 0.5);
-      const out = prog(s, t.until, t.until + 0.3);
-      const { pos } = cameraAt(t.at + 0.4);
-      const theta = Math.atan2(pos[0], pos[2]);
-      const sc = lerp(1.6, 1, clamp(p)) * (1 + out * 0.3);
-      return (
-        <group key={t.text} position={[0, 1.6 + out * 1.5, 0]} rotation={[0, theta, 0]}>
-          <mesh rotation={[-Math.PI / 2, 0, 0]} scale={[sc, sc, 1]}>
-            <planeGeometry args={[14, 2.63]} />
-            <meshBasicMaterial map={wordTex(t.text)} color={n > 0.5 ? "#ffffff" : C.ink} transparent opacity={clamp(p * 2) * (1 - out)} depthWrite={false} depthTest={false} />
-          </mesh>
-        </group>
-      );
-    })}
-  </>
-);
-
-// choices.md rises out of the finished city at dawn.
 const DocCard: React.FC<{ s: number }> = ({ s }) => {
   const at = CUE.dawn + 0.9;
   if (s < at || s > CUE.collapse[0] + 0.3) return null;
@@ -771,3 +681,116 @@ const Sparks: React.FC<{ s: number }> = ({ s }) => (
     })}
   </>
 );
+
+// ---------- slicing: borders traced along the tiles themselves ----------
+const SEG_GEO = new THREE.BoxGeometry(1, 0.06, 0.06);
+const BorderTraces: React.FC<{ s: number }> = ({ s }) => (
+  <>
+    {LANDS.flatMap((L, land) => {
+      const t0 = groupAt(land);
+      if (s < t0 - 0.05 || s > t0 + 0.9) return [];
+      const fade = 1 - prog(s, t0 + 0.4, t0 + 0.9);
+      const c = new THREE.Color(C.lands[land]).lerp(new THREE.Color("#ffffff"), 0.35).multiplyScalar(4);
+      const g = landGap(land, s);
+      const top = landTop(land, s) + 0.08 + Math.sin(Math.PI * prog(s, t0, t0 + 0.4)) * 0.45;
+      return BORDERS[land].map((seg) => {
+        const grow = outCubic(prog(s, t0 + seg.k * 0.006, t0 + seg.k * 0.006 + 0.18));
+        if (grow <= 0) return null;
+        return (
+          <mesh key={`${land}-${seg.k}`} geometry={SEG_GEO} position={[seg.x + L.dir[0] * g * 0.5, top, seg.z + L.dir[1] * g * 0.5]} rotation={[0, -seg.angle, 0]} scale={[grow, 1, 1]}>
+            <meshBasicMaterial color={c} transparent opacity={fade} toneMapped={false} />
+          </mesh>
+        );
+      });
+    })}
+  </>
+);
+
+// ---------- starfield ----------
+const STAR_GEO = (() => {
+  const n = 2600;
+  const pos = new Float32Array(n * 3);
+  const col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const u = random(`su${i}`) * 2 - 1, th = random(`st${i}`) * Math.PI * 2;
+    const r = 140 + random(`sr${i}`) * 40;
+    const k = Math.sqrt(1 - u * u);
+    pos.set([Math.cos(th) * k * r, Math.abs(u) * r * 0.9 - 20, Math.sin(th) * k * r], i * 3);
+    const warm = random(`sc${i}`);
+    const b = 0.5 + random(`sb${i}`) * 0.9;
+    col.set([b * (warm > 0.8 ? 1 : 0.8), b * 0.85, b * (warm > 0.8 ? 0.8 : 1.1)], i * 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+  return g;
+})();
+const Stars: React.FC<{ s: number }> = ({ s }) => (
+  <points geometry={STAR_GEO} rotation={[0, s * 0.01, 0]}>
+    <pointsMaterial size={1.6} sizeAttenuation={false} vertexColors transparent opacity={0.9} depthWrite={false} fog={false} toneMapped={false} />
+  </points>
+);
+
+// ---------- terrain uncovered by the mapping ----------
+const TREE_GEO = new THREE.ConeGeometry(0.2, 0.62, 6);
+const TRUNK_GEO = new THREE.CylinderGeometry(0.045, 0.06, 0.2, 5);
+const ROCK_GEO = new THREE.DodecahedronGeometry(0.22, 0);
+const RUIN_GEO = new THREE.BoxGeometry(0.16, 0.42, 0.16);
+const CRYSTAL_GEO = new THREE.OctahedronGeometry(0.2, 0);
+const PROP_MATS = {
+  leaf: new THREE.MeshPhysicalMaterial({ color: "#3f7d56", flatShading: true, roughness: 0.7, sheen: 0.4 }),
+  trunk: new THREE.MeshStandardMaterial({ color: "#6b4f3a", flatShading: true }),
+  rock: new THREE.MeshPhysicalMaterial({ color: "#8a8fa3", flatShading: true, roughness: 0.55, clearcoat: 0.3 }),
+  ruin: new THREE.MeshPhysicalMaterial({ color: "#c9c3b5", flatShading: true, roughness: 0.8 }),
+  crystal: new THREE.MeshPhysicalMaterial({ color: "#9fb4ff", emissive: "#6f8cff", emissiveIntensity: 2.2, roughness: 0.1, metalness: 0.1, transmission: 0.2, flatShading: true }),
+};
+const Terrain: React.FC<{ s: number }> = ({ s }) => {
+  if (s < CUE.pulses[0]) return null;
+  return (
+    <>
+      {PROPS.map((p, i) => {
+        const h = HEXES[p.hex];
+        const at = revealAt(h, CUE.pulses);
+        const g = spring(s, at, 2.6, 0.38);
+        if (g <= 0.001) return null;
+        const [ox, oz] = hexOffset(h, s);
+        const top = hexHeight(h, s) + hexLift(h, s);
+        const x = h.x + ox + p.ox, z = h.z + oz + p.oz;
+        const burst = s - at;
+        return (
+          <group key={i}>
+            <group position={[x, top, z]} rotation={[0, p.rot, 0]} scale={[g * 1.7, g * 1.7, g * 1.7]}>
+              {p.kind === "trees" &&
+                [[0, 0, 1], [0.24, 0.12, 0.75], [-0.18, 0.2, 0.85]].map(([tx, tz, k], j) => (
+                  <group key={j} position={[tx, 0, tz]} scale={[k, k, k]}>
+                    <mesh geometry={TRUNK_GEO} material={PROP_MATS.trunk} position={[0, 0.1, 0]} castShadow />
+                    <mesh geometry={TREE_GEO} material={PROP_MATS.leaf} position={[0, 0.5, 0]} castShadow />
+                  </group>
+                ))}
+              {p.kind === "rock" && <mesh geometry={ROCK_GEO} material={PROP_MATS.rock} position={[0, 0.12, 0]} scale={[1.3, 0.8, 1]} castShadow />}
+              {p.kind === "ruin" &&
+                [[-0.15, 0, 1], [0.15, 0.05, 0.7], [0, -0.18, 0.5]].map(([rx, rz, k], j) => (
+                  <mesh key={j} geometry={RUIN_GEO} material={PROP_MATS.ruin} position={[rx, 0.21 * k, rz]} scale={[1, k, 1]} castShadow />
+                ))}
+              {p.kind === "crystal" &&
+                [[0, 0, 1.4], [0.18, 0.1, 0.9], [-0.15, 0.12, 1.1]].map(([cx, cz, k], j) => (
+                  <mesh key={j} geometry={CRYSTAL_GEO} material={PROP_MATS.crystal} position={[cx, 0.22 * k, cz]} scale={[0.7, k * 1.4, 0.7]} rotation={[0, j, 0.15 * j]} />
+                ))}
+            </group>
+            {burst >= 0 && burst < 0.6 &&
+              Array.from({ length: 8 }, (_, k) => {
+                const a = (k / 8) * Math.PI * 2 + i;
+                const r = burst * 1.8;
+                const f = 1 - burst / 0.6;
+                return (
+                  <sprite key={k} position={[x + Math.cos(a) * r, top + 0.3 + burst * 1.2, z + Math.sin(a) * r]} scale={[0.16 * f, 0.16 * f, 1]}>
+                    <spriteMaterial map={glowTex()} color={new THREE.Color(p.kind === "crystal" ? C.periwinkle : "#ffffff").multiplyScalar(3)} transparent opacity={f} blending={ADD} depthWrite={false} />
+                  </sprite>
+                );
+              })}
+          </group>
+        );
+      })}
+    </>
+  );
+};

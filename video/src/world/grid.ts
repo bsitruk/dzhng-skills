@@ -59,3 +59,35 @@ export const BUILDINGS = LANDS.flatMap((L, land) =>
     .slice(0, land === 0 ? 3 : 5)
     .map((i, k) => ({ hex: i, land, k, h: 0.8 + random(`bh${i}`) * 1.9, w: 0.55 + random(`bw${i}`) * 0.35 })),
 );
+
+// Border segments between neighboring hexes of different territories, per land.
+// Each segment is the shared edge: midpoint of the two centers, unit length.
+export type Seg = { x: number; z: number; angle: number; k: number };
+export const BORDERS: Seg[][] = LANDS.map(() => []);
+{
+  const NEIGHBOR = Math.sqrt(3) * HEX;
+  for (const a of HEXES) {
+    for (const b of HEXES) {
+      if (b.i <= a.i || a.land === b.land) continue;
+      const d = Math.hypot(a.x - b.x, a.z - b.z);
+      if (Math.abs(d - NEIGHBOR) > 0.01) continue;
+      const seg = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, angle: Math.atan2(b.z - a.z, b.x - a.x) + Math.PI / 2, k: 0 };
+      for (const land of [a.land, b.land]) BORDERS[land].push({ ...seg, k: BORDERS[land].length });
+    }
+  }
+}
+
+// Terrain hidden under the fog, uncovered hex by hex as the sonar passes.
+// The last quadrant (the unknown unknowns) hides glowing crystals.
+export type Prop = { hex: number; kind: "trees" | "rock" | "ruin" | "crystal"; ox: number; oz: number; rot: number };
+const taken = new Set([...BUILDINGS.map((b) => b.hex), ...RAIN_TARGETS]);
+export const PROPS: Prop[] = [...HEXES]
+  .filter((h) => !taken.has(h.i) && h.dist > 0.5)
+  .sort((a, b) => random(`p${a.i}`) - random(`p${b.i}`))
+  .slice(0, 36)
+  .map((h) => {
+    const r = random(`pk${h.i}`);
+    const kind = h.quad === 3 ? "crystal" : r < 0.5 ? "trees" : r < 0.8 ? "rock" : "ruin";
+    return { hex: h.i, kind, ox: (random(`px${h.i}`) - 0.5) * 0.5, oz: (random(`pz${h.i}`) - 0.5) * 0.5, rot: random(`pr${h.i}`) * Math.PI * 2 };
+  });
+export const revealAt = (h: Hex, pulses: readonly number[]) => pulses[h.quad] + h.dist / 11 + 0.05;

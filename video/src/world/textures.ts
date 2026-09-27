@@ -107,14 +107,6 @@ export const skillTileTex = (name: string) =>
     g.fillText(name, x0 + 120, 84);
   });
 
-export const groundTextTex = (text: string) =>
-  make(`gt${text}`, 2048, 256, (g) => {
-    g.font = `900 170px ${SANS}`;
-    g.textAlign = "center";
-    g.textBaseline = "middle";
-    g.fillStyle = "#ffffff";
-    g.fillText(text.toUpperCase(), 1024, 136);
-  });
 
 // Factory facade: dark panels with a grid of warm windows (used as emissive map).
 export const facadeTex = () =>
@@ -243,3 +235,4 @@ export const terrainTex = () => {
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   return tex;
 };
+

@@ -36,6 +36,15 @@ piece could be re-skinned for any other project, it has failed.
    ignored and a short README covering commands, the timing principle, and the
    claims disclosure to preserve.
 
+## Show, don't tell
+
+Text is the last resort. Before any word goes on screen, find the picture
+that makes it unnecessary: an object that transforms, a world that changes,
+motion that performs the idea. Keep text only where nothing visual can carry
+it: the product's real commands, its name, and a claim that must be exact.
+When a draft leans on labels, captions, or subtitles to explain what is
+happening, redesign the shot instead of rewording the text.
+
 ## The showreel question
 
 Would a motion designer put this shot on their reel? Tells that it has slid
@@ -44,8 +53,13 @@ into explainer or demo:
 - **Animated slide deck.** A static layout where elements slide in and hold.
   A reel's camera is always going somewhere, and its composition keeps
   changing.
-- **Reading, not watching.** Paragraphs, UI cards, and body copy. A reel speaks
-  in few-word hits at dramatic scale, and the visuals carry the mechanism.
+- **Reading, not watching.** Paragraphs, UI cards, body copy, or a subtitle
+  under a headline (a headline that needs a subtitle is two ideas). A reel
+  speaks in few-word hits at dramatic scale, and the visuals carry the
+  mechanism.
+- **Broken metaphor.** An action that doesn't do what it depicts: a cut that
+  ignores the pieces it claims to divide, a label nobody could read against
+  its ground. Make the motion true to the objects on screen.
 - **One trick.** Every element springs in the same way. A reel shows range:
   depth and parallax, scale contrast, match cuts and transitions that carry an
   element into the next shot, speed ramps, lighting and color shifts, particles

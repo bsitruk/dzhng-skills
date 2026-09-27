@@ -32,8 +32,8 @@ thumbnail; `PREROLL` shifts both picture and music.
 
 ## Claims to preserve
 
-- "The middle runs itself" and "Your time is in the bookends" restate the root
-  README's full loop. Keep them tied to it.
+- "The middle runs itself" restates the root README's full loop. Keep it tied
+  to it.
 - The unattended timer counts up through hours into days as an illustration of
   a long autonomous run; it is not a measured claim.
 - "Claude Code · Codex · +70 harnesses" comes from the root README.

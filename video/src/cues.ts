@@ -77,7 +77,7 @@ export const CUE = {
   // 6 · Proof.
   slam: 22.0, // "The middle"
   slam2: 22.5, // "runs itself."
-  proofSub: [23.0, 23.75], // timer docks under the headline · "Your time is in the bookends."
+  proofSub: [23.0], // timer docks under the headline
 
   // 7 · Review the choices.
   dawn: 26.0,
