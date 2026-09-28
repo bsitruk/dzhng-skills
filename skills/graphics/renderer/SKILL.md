@@ -38,6 +38,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Depth is an access contract** (`read`, `read-write`, `prepassed`), and the convention is engine-wide. Prefer reverse-Z on `depth32float` (clear 0, compare `greater`). Compare direction, clear value and format change together or not at all.
 - **Opaque geometry never alpha-blends.** Translucent passes read depth and never write it.
+- **A line drawn in pieces joins by construction.** Additive pieces overlap and fade over the overlap, so the joins sum to one; blended pieces are cut square, since two over-composited fades never sum to one. Blended layers of one thing draw in layer order, not in the order their pieces were made.
 - **Overlays and UI are composited after post-processing,** unlit and ungraded. Anything that belongs in the world is drawn in the world.
 - **The depth prepass and the colour pass share one vertex stage** with an `@invariant` position, so their depth matches bit for bit.
 - **Use 4× MSAA** (the count WebGPU guarantees). Interpolate at the centroid any varying that a later screen-space test depends on.
