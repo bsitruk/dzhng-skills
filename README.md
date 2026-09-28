@@ -173,7 +173,8 @@ when the research is ready for implementation.
 
 | Skill | What it does |
 |---|---|
-| [renderer](skills/graphics/renderer/SKILL.md) | Build, debug, or review WebGPU renderer work — three.js/TSL scene layers, node materials, WGSL passes, depth semantics, and browser-verified visuals. |
+| [renderer](skills/graphics/renderer/SKILL.md) | Architecture rules for GPU rendering with TypeGPU/WebGPU — one frame orchestrator, single owners, a resource registry, depth and compositing contracts, and verification that looks at pixels. |
+| [launch-video](skills/graphics/launch-video/SKILL.md) | Direct a showreel-grade launch video in code — one visual concept grown from the project, picture and a synthesized score locked to one timing source, and a preview frame that survives social feeds. |
 
 ## License
 
