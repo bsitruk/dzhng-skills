@@ -11,7 +11,7 @@ way: red on harmless changes, green while the real path is broken. Every rule
 below serves that one goal.
 
 For deciding whether coverage adds independent proof, where it belongs, or
-which existing tests can go, use [audit-test](../audit-test/SKILL.md).
+which existing tests can go, use [audit-tests](../audit-tests/SKILL.md).
 
 ## Workflow: tracer bullets, not a batch
 
