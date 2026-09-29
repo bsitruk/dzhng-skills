@@ -1,9 +1,9 @@
 ---
-name: test-audit
+name: audit-test
 description: Audit whether tests earn their maintenance cost and which suite owns each contract. Use when pruning redundant tests, investigating implementation coupling or test-only production hooks, reviewing the value of proposed coverage, or auditing an entire subsystem. Use write-tests to implement the resulting test changes.
 ---
 
-# Test Audit
+# Audit Test
 
 Audit **independent proof**: what bug would escape if this test disappeared?
 The result is a map of contracts to their surviving tests, with evidence for
