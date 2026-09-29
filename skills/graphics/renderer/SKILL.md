@@ -38,6 +38,8 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Depth is an access contract** (`read`, `read-write`, `prepassed`), and the convention is engine-wide. Prefer reverse-Z on `depth32float` (clear 0, compare `greater`). Compare direction, clear value and format change together or not at all.
 - **Opaque geometry never alpha-blends.** Translucent passes read depth and never write it.
+- **A line drawn in pieces joins by construction.** Additive pieces overlap and fade over the overlap, so the joins sum to one; blended pieces are cut square, since two over-composited fades never sum to one. Blended layers of one thing draw in layer order, not in the order their pieces were made.
+- **Dynamic light is data every material reads through one shading function.** Effects offer a bounded per-frame list of short-lived point lights; the shared shade call sums them for every lit layer. A glow sprite brightens air, never the surfaces round it, and a per-layer lighting hack drifts from the others.
 - **Overlays and UI are composited after post-processing,** unlit and ungraded. Anything that belongs in the world is drawn in the world.
 - **The depth prepass and the colour pass share one vertex stage** with an `@invariant` position, so their depth matches bit for bit.
 - **Use 4× MSAA** (the count WebGPU guarantees). Interpolate at the centroid any varying that a later screen-space test depends on.
@@ -47,6 +49,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 - **Pin only the shared camera bind group** (`$idx(0)`). TypeGPU numbers the rest.
 - **A pipeline with no fragment stage is valid.** Use it for depth-only passes rather than writing `frag_depth`, which disables early-Z.
 - **WGSL `let` is immutable.** Reassigning one invalidates the pipeline while the app looks healthy.
+- **WGSL reserves words it doesn't use yet** (`cast`, `meta`, …); an identifier named after one fails the module at parse time.
 - **Pad uniform structs to 16 B.** Keep a byte-size constant beside each schema and test the packer against it.
 - **Default bind limits are small** (8 storage buffers per stage). Count before adding one.
 - **Apple GPUs:**
