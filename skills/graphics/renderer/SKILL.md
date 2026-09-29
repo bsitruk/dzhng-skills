@@ -32,6 +32,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Every buffer and texture goes through one registry,** with scopes for size-dependent targets and slots for replaceable resources. Nothing is allocated outside it: in TypeGPU, `root.destroy()` does not free what the root created.
 - **Handle async rebuilds** (resize, pipeline swaps). Build into a new scope and swap it in whole. Free a build that's overtaken or finishes after dispose. Make every public call safe after `dispose`.
+- **Serialize the whole replacement transaction** when upload and derived-resource baking share mutable GPU buffers. Serializing upload alone still lets an older readback install stale results; retain caller errors without poisoning later requests.
 - **Add a test that counts and bytes return to baseline** after resize, rebuild and repeated reset.
 
 ## Depth, blending and targets
