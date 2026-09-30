@@ -49,6 +49,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 ## TypeGPU and WebGPU gotchas
 
+- **Use one TypeGPU module instance in GPU probes.** Mixing a bundler-optimized import with a direct package URL (or a different cache query) duplicates internal symbols: imported shader functions can silently disappear from resolution and WGSL reports an unresolved call. Match the pass's actual module URL before changing shader code.
 - **Pin only the shared camera bind group** (`$idx(0)`). TypeGPU numbers the rest.
 - **A pipeline with no fragment stage is valid.** Use it for depth-only passes rather than writing `frag_depth`, which disables early-Z.
 - **WGSL `let` is immutable.** Reassigning one invalidates the pipeline while the app looks healthy.
