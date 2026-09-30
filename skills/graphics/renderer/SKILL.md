@@ -45,6 +45,8 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 - **The depth prepass and the colour pass share one vertex stage** with an `@invariant` position, so their depth matches bit for bit.
 - **Use 4× MSAA** (the count WebGPU guarantees). Interpolate at the centroid any varying that a later screen-space test depends on.
 
+- **Composite each annotation as one group.** Its backing paints below its foreground strokes; selection priority moves the whole group. Fix occlusion through paint order, not by erasing intended backing coverage. Bound effect tails separately from stacking.
+
 ## TypeGPU and WebGPU gotchas
 
 - **Pin only the shared camera bind group** (`$idx(0)`). TypeGPU numbers the rest.
