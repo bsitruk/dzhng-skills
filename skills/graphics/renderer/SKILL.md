@@ -68,3 +68,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 - **Stats aren't pixels.** Pair counts with a pixel or crop check that proves the subject was drawn and framed.
 - **Derive checks from contracts,** not copied constants. Change a pixel threshold only with a written reason.
 - **Measure GPU cost with the feature toggled on and off, interleaved on one machine,** not as two separate runs. Other load on the machine swamps small differences.
+
+## Width changes at tactical zoom
+
+When a world-space width change barely moves the screenshot, trace the full width path through screen-space minimums, core/glow layers and postprocessing before tuning again. Compare native tactical and close views with the same camera and event. For moving subpixel features, inspect consecutive frames in the crowded gameplay view as well as isolated crops; a thin still can conceal flicker or disappear against terrain.
