@@ -47,6 +47,8 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Composite each annotation as one group.** Its backing paints below its foreground strokes; selection priority moves the whole group. Fix occlusion through paint order, not by erasing intended backing coverage. Bound effect tails separately from stacking.
 
+- **Bound final rendered geometry, including every independent multiplier and drawn LOD.** Give shader variation bounds, CPU validation and culling one owner. View-dependent width expansion must not silently expand height; source dimensions alone cannot prove a final size cap.
+
 ## TypeGPU and WebGPU gotchas
 
 - **Use one TypeGPU module instance in GPU probes.** Mixing a bundler-optimized import with a direct package URL (or a different cache query) duplicates internal symbols: imported shader functions can silently disappear from resolution and WGSL reports an unresolved call. Match the pass's actual module URL before changing shader code.
