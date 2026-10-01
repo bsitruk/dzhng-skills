@@ -102,3 +102,14 @@ publication. Await its drawn tick and presentation clock before moving the camer
 Otherwise a retained buffer may see an extra detail tier on one reset and look
 like a leak. Attribute differences with actual allocation creation/destruction
 records before changing capacity policy or weakening byte assertions.
+
+
+## Corpse identity does not freeze its anchor
+
+A falling or resting body's authority can change its support after a building
+collapses. Refresh the published position for the same corpse identity without
+restarting its death clip, changing its facing, or making a faded corpse return.
+A static anchor change must invalidate the corpse publication version; moving
+only the cached object leaves GPU instances at the old height. Enemy anchors
+come from the side's last observed corpse state, so rendering cannot infer an
+unseen collapse from the current physical world.
