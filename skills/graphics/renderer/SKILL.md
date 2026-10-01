@@ -49,6 +49,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 ## TypeGPU and WebGPU gotchas
 
+- **Use one TypeGPU module instance in GPU probes.** Mixing a bundler-optimized import with a direct package URL (or a different cache query) duplicates internal symbols: imported shader functions can silently disappear from resolution and WGSL reports an unresolved call. Match the pass's actual module URL before changing shader code.
 - **Pin only the shared camera bind group** (`$idx(0)`). TypeGPU numbers the rest.
 - **A pipeline with no fragment stage is valid.** Use it for depth-only passes rather than writing `frag_depth`, which disables early-Z.
 - **WGSL `let` is immutable.** Reassigning one invalidates the pipeline while the app looks healthy.
@@ -68,3 +69,11 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 - **Stats aren't pixels.** Pair counts with a pixel or crop check that proves the subject was drawn and framed.
 - **Derive checks from contracts,** not copied constants. Change a pixel threshold only with a written reason.
 - **Measure GPU cost with the feature toggled on and off, interleaved on one machine,** not as two separate runs. Other load on the machine swamps small differences.
+
+## Width changes at tactical zoom
+
+When a world-space width change barely moves the screenshot, trace the full width path through screen-space minimums, core/glow layers and postprocessing before tuning again. Compare native tactical and close views with the same camera and event. For moving subpixel features, inspect consecutive frames in the crowded gameplay view as well as isolated crops; a thin still can conceal flicker or disappear against terrain.
+
+## Repeating motion needs a full cycle
+
+For cadence or synchronization claims, capture startup and multiple complete work/rest cycles, including their longest pauses. Pair native motion frames with source-event timestamps per actor; overlapping visible trails do not prove simultaneous launches, and a short staggered opening does not prove sustained independence. Test random timing across several seeds and report measured gaps rather than promising uninterrupted activity.
