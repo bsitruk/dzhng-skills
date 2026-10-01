@@ -49,9 +49,9 @@ Every piece must prove itself — architecture review, code review, and visual
 review against a baseline — before the loop moves on. Each iteration gets *less
 wrong*, until the goal is done.
 
-![A single autonomous run — 1 day, 16 hours pursuing one goal](assets/autonomous-run.png)
+![A single autonomous run — 3 days, 18 minutes pursuing one goal](assets/autonomous-run.png)
 
-> Proof: one unattended Codex run pursuing a single goal for **1d 16h** on top
+> Proof: one unattended Codex run pursuing a single goal for **3d 18m** on top
 > of these skills, slicing and iterating until done.
 
 ## How to use
