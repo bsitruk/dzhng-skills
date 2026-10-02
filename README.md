@@ -169,6 +169,7 @@ when the research is ready for implementation.
 | Skill | What it does |
 |---|---|
 | [write-skills](skills/authoring/write-skills/SKILL.md) | Create or revise agent skills: triggers, leading words, progressive disclosure, and the failure modes to prune. |
+| [audit-agents](skills/authoring/audit-agents/SKILL.md) | Audit contributor guidance for durable principles, fast iteration and proportionate verification, preserving project intent. |
 | [eval-skills](skills/authoring/eval-skills/SKILL.md) | Eval a skill against golden cases — blind runs in fresh subagents, a separate judge, and gap-driven edits. |
 
 ### Graphics
