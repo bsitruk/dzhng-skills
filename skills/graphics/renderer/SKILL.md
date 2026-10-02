@@ -47,6 +47,8 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Composite each annotation as one group.** Its backing paints below its foreground strokes; selection priority moves the whole group. Fix occlusion through paint order, not by erasing intended backing coverage. Bound effect tails separately from stacking.
 
+- **Bound final rendered geometry, including every independent multiplier and drawn LOD.** Give shader variation bounds, CPU validation and culling one owner. View-dependent width expansion must not silently expand height; source dimensions alone cannot prove a final size cap.
+
 ## TypeGPU and WebGPU gotchas
 
 - **Use one TypeGPU module instance in GPU probes.** Mixing a bundler-optimized import with a direct package URL (or a different cache query) duplicates internal symbols: imported shader functions can silently disappear from resolution and WGSL reports an unresolved call. Match the pass's actual module URL before changing shader code.
@@ -66,7 +68,7 @@ For 3D models and textures, use Blender if it's available. Prefer a Blender MCP 
 
 - **Use one injectable clock** for animation. Never use `performance.now()`, `Date` or unseeded randomness inside a pass. A held clock gives deterministic captures.
 - **Test packing and CPU mirrors of shader math in unit tests.** Then render the narrowest real scene in a browser running on the real GPU (not a software fallback), and look at the image.
-- **Stats aren't pixels.** Pair counts with a pixel or crop check that proves the subject was drawn and framed.
+- **Stats aren't pixels.** Pair counts with a pixel or crop check that proves the subject was drawn and framed. Match a streak to its published endpoint, not colour alone when classes share a style. Follow fast motion for consecutive-frame crops so leaving a static camera does not masquerade as fading.
 - **Derive checks from contracts,** not copied constants. Change a pixel threshold only with a written reason.
 - **Measure GPU cost with the feature toggled on and off, interleaved on one machine,** not as two separate runs. Other load on the machine swamps small differences.
 
@@ -77,3 +79,37 @@ When a world-space width change barely moves the screenshot, trace the full widt
 ## Repeating motion needs a full cycle
 
 For cadence or synchronization claims, capture startup and multiple complete work/rest cycles, including their longest pauses. Pair native motion frames with source-event timestamps per actor; overlapping visible trails do not prove simultaneous launches, and a short staggered opening does not prove sustained independence. Test random timing across several seeds and report measured gaps rather than promising uninterrupted activity.
+
+## Native generation identity owns overlapping scenery
+
+Spatial membership cannot identify which authored forest generated a trunk.
+Overlapping shapes can duplicate trees or assign another source's canopy. Export
+immutable original source associations from native generation, retain lossless
+prop IDs in the consumer, and place each source trunk once. Exact rectangle export
+ordinal also needs an explicit authored-ID mapping when other shapes are interleaved.
+Prove this through public exports and production placement, including empty sources
+and ordinary props outside the generated ranges.
+
+Membership, numeric sampling and rendered acceptance are separate claims. Preserve
+the first failed production readback and its compiled source; a matching membership
+flag does not resolve a failed distance oracle. At a stopping point, preserve an
+unactivated candidate and restore the runtime baseline instead of widening its bar.
+
+## Resource checks need consistent view history
+
+A paused fast-forward can finish delivering data before the UI draws that
+publication. Await its drawn tick and presentation clock before moving the camera.
+Otherwise a retained buffer may see an extra detail tier on one reset and look
+like a leak. Attribute differences with actual allocation creation/destruction
+records before changing capacity policy or weakening byte assertions.
+
+
+## Corpse identity does not freeze its anchor
+
+A falling or resting body's authority can change its support after a building
+collapses. Refresh the published position for the same corpse identity without
+restarting its death clip, changing its facing, or making a faded corpse return.
+A static anchor change must invalidate the corpse publication version; moving
+only the cached object leaves GPU instances at the old height. Enemy anchors
+come from the side's last observed corpse state, so rendering cannot infer an
+unseen collapse from the current physical world.
