@@ -169,7 +169,7 @@ when the research is ready for implementation.
 | Skill | What it does |
 |---|---|
 | [write-skills](skills/authoring/write-skills/SKILL.md) | Create or revise agent skills: triggers, leading words, progressive disclosure, and the failure modes to prune. |
-| [audit-agents](skills/authoring/audit-agents/SKILL.md) | Audit contributor guidance for durable principles, fast iteration and proportionate verification, preserving project intent. |
+| [audit-agents](skills/authoring/audit-agents/SKILL.md) | Audit or rewrite AGENTS.md so it holds only lasting principles, with iteration speed at the core. Ships an example AGENTS.md that pairs with this pack. |
 | [eval-skills](skills/authoring/eval-skills/SKILL.md) | Eval a skill against golden cases — blind runs in fresh subagents, a separate judge, and gap-driven edits. |
 
 ### Graphics
