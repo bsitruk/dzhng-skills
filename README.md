@@ -142,6 +142,7 @@ when the research is ready for implementation.
 | [implement-spec](skills/engineering/implement-spec/SKILL.md) | Build an existing spec to completion, one reviewable pass at a time, delegating independent slices in parallel. |
 | [implement-spec-with-codex](skills/engineering/implement-spec-with-codex/SKILL.md) | Run implement-spec with Codex writing the code — you orchestrate, integrate, and review every pass. |
 | [close-spec](skills/engineering/close-spec/SKILL.md) | Archive a shipped spec and rewrite it from a build plan into a durable rationale record that points back at the code. |
+| [handoff-spec](skills/engineering/handoff-spec/SKILL.md) | Hand a spec that is mid-implementation to another machine or agent: capture what the session knows in the spec, then push. User-invoked. |
 | [refactor-clean](skills/engineering/refactor-clean/SKILL.md) | Refactor by moving ownership to one clean concept instead of layering compatibility sediment beside the problem. |
 | [write-tests](skills/engineering/write-tests/SKILL.md) | Write tests one tracer bullet at a time that pin real behavior — not implementation details, config values, or lucky samples. |
 | [audit-tests](skills/engineering/audit-tests/SKILL.md) | Map contracts to independent test proof, consolidate redundant coverage, and remove test-only machinery without losing regression protection. |
