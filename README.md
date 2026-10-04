@@ -140,6 +140,7 @@ when the research is ready for implementation.
 | [auto-research](skills/engineering/auto-research/SKILL.md) | Optimize through fast, progressive experiments, producing a verified candidate and a map of parameter effects and tradeoffs. |
 | [write-spec](skills/engineering/write-spec/SKILL.md) | Break a large feature into independently verifiable, human-reviewable slices with API seams and playable checkpoints. |
 | [implement-spec](skills/engineering/implement-spec/SKILL.md) | Build an existing spec to completion, one reviewable pass at a time, delegating independent slices in parallel. |
+| [implement-spec-with-goal](skills/engineering/implement-spec-with-goal/SKILL.md) | Use the harness's goal feature, then follow implement-spec to completion. |
 | [implement-spec-with-codex](skills/engineering/implement-spec-with-codex/SKILL.md) | Run implement-spec with Codex writing the code — you orchestrate, integrate, and review every pass. |
 | [close-spec](skills/engineering/close-spec/SKILL.md) | Archive a shipped spec and rewrite it from a build plan into a durable rationale record that points back at the code. |
 | [handoff-spec](skills/engineering/handoff-spec/SKILL.md) | Hand a spec that is mid-implementation to another machine or agent: capture what the session knows in the spec, then push. User-invoked. |
