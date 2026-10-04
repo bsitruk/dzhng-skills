@@ -190,5 +190,5 @@ MIT
 Thanks to [Matt Pocock](https://x.com/mattpocockuk) for the
 [retro skill](https://github.com/mattpocock/skills/tree/main/skills/engineering/retro),
 copied here with its writing-guide references pointed at this repo's `write-skills`.
-Thanks also to Matt and [Thariq](https://x.com/trq212) from Anthropic for the **fog of war** and
+Thanks also to Matt and [Thariq](https://x.com/trq212) for the **fog of war** and
 **discovering the map** concepts that helped shape these skills.
