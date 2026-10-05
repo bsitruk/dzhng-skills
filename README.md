@@ -140,6 +140,7 @@ when the research is ready for implementation.
 | [auto-research](skills/engineering/auto-research/SKILL.md) | Optimize through fast, progressive experiments, producing a verified candidate and a map of parameter effects and tradeoffs. |
 | [write-spec](skills/engineering/write-spec/SKILL.md) | Break a large feature into independently verifiable, human-reviewable slices with API seams and playable checkpoints. |
 | [implement-spec](skills/engineering/implement-spec/SKILL.md) | Build an existing spec to completion, one reviewable pass at a time, delegating independent slices in parallel. |
+| [implement-spec-with-goal](skills/engineering/implement-spec-with-goal/SKILL.md) | Use the harness's goal feature, then follow implement-spec to completion. |
 | [implement-spec-with-codex](skills/engineering/implement-spec-with-codex/SKILL.md) | Run implement-spec with Codex writing the code — you orchestrate, integrate, and review every pass. |
 | [close-spec](skills/engineering/close-spec/SKILL.md) | Archive a shipped spec and rewrite it from a build plan into a durable rationale record that points back at the code. |
 | [handoff-spec](skills/engineering/handoff-spec/SKILL.md) | Hand a spec that is mid-implementation to another machine or agent: capture what the session knows in the spec, then push. User-invoked. |
@@ -150,6 +151,7 @@ when the research is ready for implementation.
 | [write-docs](skills/engineering/write-docs/SKILL.md) | Write docs as a glossary of principles and pointers, never a mirror of the code that will rot. |
 | [code-review](skills/engineering/code-review/SKILL.md) | Audit a diff for stale names, dead references, needless complexity, and comments that narrate instead of explain — ending on a clean/not-clean verdict. |
 | [audit-choices](skills/engineering/audit-choices/SKILL.md) | Audit the choices an implementer made, not its diff — a pure, never-blocking audit whose ledger discloses the architecture and decisions made on the user's behalf, reviewed instead of the code. |
+| [retro](skills/engineering/retro/SKILL.md) | Conduct a coding-session retrospective and suggest improvements to the agent's environment, checks, guidance, and information access. User-invoked. |
 | [eli5](skills/engineering/eli5/SKILL.md) | Explain a spec or change in plain language without losing precision — the ELI5 register other skills borrow for standalone, walked-scenario explanations. |
 | [review](skills/engineering/review/SKILL.md) | Closeout a finished change as one pass — refactor-clean, then code-review, then write-docs — sequenced into a single verdict. |
 | [codex](skills/engineering/codex/SKILL.md) | Use the local Codex CLI as an independent second agent for review and (on explicit ask) delegated implementation. |
@@ -183,3 +185,11 @@ when the research is ready for implementation.
 ## License
 
 MIT
+
+## Acknowledgements
+
+Thanks to [Matt Pocock](https://x.com/mattpocockuk) for the
+[retro skill](https://github.com/mattpocock/skills/tree/main/skills/engineering/retro),
+copied here with its writing-guide references pointed at this repo's `write-skills`.
+Thanks also to Matt and [Thariq](https://x.com/trq212) for the **fog of war** and
+**discovering the map** concepts that helped shape these skills.
