@@ -61,7 +61,7 @@ works, or individual skills as needed. Every skill stands alone.
 
 ### The full loop — a big feature, start to finish
 
-![The full loop — explore, spec, build unattended, review the choices](assets/full-loop.png)
+![The full loop — explore, spec, build unattended, review the decisions](assets/full-loop.png)
 
 1. **Map the fog.** `/explore-unknowns` on the idea. It interviews you quadrant
    by quadrant and hands you rendered options, mocks, and decision tables to
@@ -84,11 +84,11 @@ works, or individual skills as needed. Every skill stands alone.
    the xyz branch`, or `using /codex as the implementer while you stay the
    parent orchestrator and reviewer`.
 
-4. **Review the choices, not the diff.** The run ends by consolidating
-   `specs/<feature>/choices.md` — every decision the agent made where the spec
+4. **Review the decisions, not the diff.** The run ends by consolidating
+   `specs/<feature>/decisions.md` — every decision the agent made where the spec
    was silent, ranked least-confident first. That's the review surface. Send
    changes back and the next pass re-audits: every time the AI writes code, you
-   audit what it chose.
+   audit what it decided.
 
    The rest fires on its own: a `/review` pass at the end of every slice,
    `/screenshot-critique` and `/compare-screenshots` on anything visual,
@@ -127,8 +127,8 @@ when the research is ready for implementation.
 
 - **Any code change that didn't come from a spec.** An ad hoc fix that touched
   more than expected: `/review` first (refactor-clean → code-review →
-  write-docs), then `/audit-choices`. When the diff is too big to read, the
-  choices ledger is how you still understand what is now in your codebase.
+  write-docs), then `/audit-decisions`. When the diff is too big to read, the
+  decisions ledger is how you still understand what is now in your codebase.
 
 ## Skills
 
@@ -151,7 +151,7 @@ when the research is ready for implementation.
 | [ratchet-files](skills/engineering/ratchet-files/SKILL.md) | Keep every source file small enough for an agent to read whole: list files over a token budget, split them by concept, and install a pre-commit ratchet that lets oversized files shrink but never grow. |
 | [write-docs](skills/engineering/write-docs/SKILL.md) | Write docs as a glossary of principles and pointers, never a mirror of the code that will rot. |
 | [code-review](skills/engineering/code-review/SKILL.md) | Audit a diff for stale names, dead references, needless complexity, and comments that narrate instead of explain — ending on a clean/not-clean verdict. |
-| [audit-choices](skills/engineering/audit-choices/SKILL.md) | Audit the choices an implementer made, not its diff — a pure, never-blocking audit whose ledger discloses the architecture and decisions made on the user's behalf, reviewed instead of the code. |
+| [audit-decisions](skills/engineering/audit-decisions/SKILL.md) | Audit the decisions an implementer made, not its diff — a pure, never-blocking audit whose ledger discloses the architecture settled on the user's behalf, reviewed instead of the code. |
 | [retro](skills/engineering/retro/SKILL.md) | Conduct a coding-session retrospective and suggest improvements to the agent's environment, checks, guidance, and information access. User-invoked. |
 | [eli5](skills/engineering/eli5/SKILL.md) | Explain a spec or change in plain language without losing precision — the ELI5 register other skills borrow for standalone, walked-scenario explanations. |
 | [review](skills/engineering/review/SKILL.md) | Closeout a finished change as one pass — refactor-clean, then code-review, then write-docs — sequenced into a single verdict. |
